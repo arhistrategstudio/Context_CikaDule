@@ -460,6 +460,72 @@ select option {
   border-radius: 8px;
 }
 
+/* Express & Expert Mode Toggle Styles */
+.mode-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--panel-border);
+}
+#modeToggleLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 8px;
+}
+.mode-toggle-buttons {
+  display: flex;
+  gap: 2px;
+}
+.mode-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.mode-btn:hover {
+  color: var(--text-main);
+}
+.mode-btn.on {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.field-tip {
+  font-size: 11px;
+  color: var(--secondary);
+  margin-top: 4px;
+  opacity: 0.85;
+  line-height: 1.35;
+}
+
+/* Highlight Segments Styles */
+.prompt-segment {
+  display: block;
+  transition: all 0.25s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+.prompt-segment.active-highlight {
+  background: rgba(99, 102, 241, 0.18);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+  color: #ffffff;
+  border-left: 2px solid var(--primary);
+  padding-left: 6px;
+}
+
 @media(max-width: 1200px) {
   .app {
     grid-template-columns: 240px 1.2fr 1fr;
@@ -541,8 +607,19 @@ select option {
   </aside>
   <section class="editor">
     <p class="eyebrow" id="modeT">ACTIVE WORKSPACE</p>
-    <h1 id="formTitle"></h1>
-    <p class="intro" id="formIntro"></p>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h1 id="formTitle"></h1>
+        <p class="intro" id="formIntro" style="margin: 0;"></p>
+      </div>
+      <div class="mode-toggle-container">
+        <span id="modeToggleLabel">Mode:</span>
+        <div class="mode-toggle-buttons">
+          <button class="mode-btn on" id="btnExpress">Express</button>
+          <button class="mode-btn" id="btnExpert">Learn</button>
+        </div>
+      </div>
+    </div>
     <div class="form" id="fields"></div>
     <div class="actions">
       <button class="primary" id="copy">▣ <span id="copyT">COPY PROMPT</span></button>
@@ -564,10 +641,188 @@ select option {
   </section>
 </main>
 <script>
-const $=x=>document.getElementById(x), data={};let active='general',lang='en';
-const L={en:{tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',clear:'CLEAR ACTIVE FORM',type:'Context type / template',mode:'ACTIVE WORKSPACE',copy:'COPY PROMPT',down:'DOWNLOAD .TXT',prev:'LIVE PROMPT PREVIEW',opt:'Optimized prompt',copied:'Prompt copied.',downloaded:'File downloaded.',run:'RUN IN MODEL'},sr:{tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',clear:'OČISTI AKTIVNI OBRAZAC',type:'Tip konteksta / šablon',mode:'AKTIVNI RADNI PROSTOR',copy:'KOPIRAJ PROMPT',down:'PREUZMI .TXT',prev:'PREGLED PROMPTA UŽIVO',opt:'Optimizovani prompt',copied:'Prompt je kopiran.',downloaded:'Fajl je preuzet.',run:'POKRENI U MODELU'}};
+const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express';
+const L={en:{tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',clear:'CLEAR ACTIVE FORM',type:'Context type / template',mode:'ACTIVE WORKSPACE',copy:'COPY PROMPT',down:'DOWNLOAD .TXT',prev:'LIVE PROMPT PREVIEW',opt:'Optimized prompt',copied:'Prompt copied.',downloaded:'File downloaded.',run:'RUN IN MODEL',modeToggleLabel:'MODE:',express:'Express',expert:'Learn'},sr:{tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',clear:'OČISTI AKTIVNI OBRAZAC',type:'Tip konteksta / šablon',mode:'AKTIVNI RADNI PROSTOR',copy:'KOPIRAJ PROMPT',down:'PREUZMI .TXT',prev:'PREGLED PROMPTA UŽIVO',opt:'Optimizovani prompt',copied:'Prompt je kopiran.',downloaded:'Fajl je preuzet.',run:'POKRENI U MODELU',modeToggleLabel:'REŽIM:',express:'Brzi',expert:'Edukativni'}};
 const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
 const label={model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora']};
+const tips = {
+  model: {
+    en: "Choosing the right model calibrates capability and token cost.",
+    sr: "Izbor pravog modela kalibriše sposobnost i cenu tokena."
+  },
+  answer: {
+    en: "Explicitly setting the output language avoids unwanted translations.",
+    sr: "Eksplicitno podešavanje jezika sprečava neželjene prevode."
+  },
+  task: {
+    en: "Use active, precise verbs (e.g. 'Synthesize', 'Extract') instead of 'Help me write'.",
+    sr: "Koristite aktivne, precizne glagole (npr. 'Sintetiši', 'Izdvoji') umesto 'Pomozi mi da napišem'."
+  },
+  role: {
+    en: "Anchors the AI's perspective and depth of vocabulary.",
+    sr: "Sidri perspektivu modela i dubinu vokabulara."
+  },
+  context: {
+    en: "Provide background information to prevent the model from guessing details.",
+    sr: "Obezbedite pozadinske informacije kako model ne bi nagađao detalje."
+  },
+  audience: {
+    en: "Defines the complexity level of the explanation.",
+    sr: "Definiše nivo kompleksnosti objašnjenja."
+  },
+  format: {
+    en: "Locking the format (Markdown/JSON) makes output parsing predictable.",
+    sr: "Zaključavanje formata (Markdown/JSON) čini obradu izlaza predvidivom."
+  },
+  length: {
+    en: "Caps verbose models. Prefer strict numbers (e.g., 'under 200 words').",
+    sr: "Ograničava opširne modele. Koristite tačne brojeve (npr. 'do 200 reči')."
+  },
+  tone: {
+    en: "Dictates vocabulary and style (e.g., professional, direct).",
+    sr: "Diktira izbor reči i stil (npr. profesionalan, direktan)."
+  },
+  constraints: {
+    en: "Negative constraints ('what NOT to do') are 3x more effective than positive ones.",
+    sr: "Negativna ograničenja ('šta NE raditi') su 3x efikasnija od pozitivnih."
+  },
+  success: {
+    en: "Define clear binary criteria so you can easily evaluate if the output is correct.",
+    sr: "Definišite jasne binarne kriterijume kako biste lako procenili tačnost izlaza."
+  },
+  steps: {
+    en: "Sequencing instructions prevents the model from skipping stages.",
+    sr: "Nizanje instrukcija sprečava model da preskoči korake."
+  },
+  examples: {
+    en: "Few-shot examples are the single best way to enforce complex formatting rules.",
+    sr: "Few-shot primeri su najbolji način da nametnete komplikovana pravila formatiranja."
+  },
+  file: {
+    en: "Always scope IDE AI to a specific path to prevent accidental edits in other files.",
+    sr: "Uvek ograničite IDE AI na tačnu putanju da sprečite neželjene izmene u drugim fajlovima."
+  },
+  current: {
+    en: "Describe the starting code behavior. Be technical and precise.",
+    sr: "Opišite početno ponašanje koda. Budite tehnički precizni."
+  },
+  desired: {
+    en: "State the target delta. What should change or be added?",
+    sr: "Navedite ciljnu izmenu. Šta treba promeniti ili dodati?"
+  },
+  scope: {
+    en: "Constrain the files or folders the agent is allowed to read or write.",
+    sr: "Ograničite fajlove ili foldere koje agent sme da čita ili menja."
+  },
+  dont: {
+    en: "Explicitly list functions or files that are strictly off-limits.",
+    sr: "Eksplicitno navedite funkcije ili fajlove koje je zabranjeno dirati."
+  },
+  stop: {
+    en: "Define conditions where the agent must stop and ask for human approval.",
+    sr: "Definišite uslove u kojima agent mora da stane i traži odobrenje čoveka."
+  },
+  environment: {
+    en: "Provide OS, shell, and installed tools context for CLI execution.",
+    sr: "Obezbedite OS, shell i instalirane alate za CLI izvršavanje."
+  },
+  subject: {
+    en: "Place the main subject first in the visual scene description.",
+    sr: "Postavite glavni subjekat na početak opisa vizuelne scene."
+  },
+  action: {
+    en: "Describe pose, motion, or activity of the subject.",
+    sr: "Opišite pozu, pokret ili aktivnost subjekta."
+  },
+  setting: {
+    en: "Describe the background scene, context, or landscape.",
+    sr: "Opišite pozadinsku scenu, okruženje ili pejzaž."
+  },
+  style: {
+    en: "Specify camera type, lens, artist style, or rendering engine.",
+    sr: "Navedite tip kamere, objektiv, stil umetnika ili rendering engine."
+  },
+  mood: {
+    en: "Sets the emotional tone of the generated image/video.",
+    sr: "Podešava emotivni ton generisane slike/videa."
+  },
+  lighting: {
+    en: "Direct light sources, shadows, time of day (e.g. 'golden hour').",
+    sr: "Usmerite izvore svetlosti, senke ili doba dana (npr. 'golden hour')."
+  },
+  palette: {
+    en: "Specify a curated color palette instead of generic colors.",
+    sr: "Navedite paletu boja umesto generičkih naziva boja."
+  },
+  composition: {
+    en: "Describe camera angle (e.g., 'medium shot', 'low angle') and frame centering.",
+    sr: "Opišite ugao kamere (npr. 'medium shot', 'low angle') i centriranje kadra."
+  },
+  aspect: {
+    en: "Aspect ratio parameter at the end of the prompt (e.g., '--ar 16:9').",
+    sr: "Parametar odnosa stranica na kraju prompta (npr. '--ar 16:9')."
+  },
+  negative: {
+    en: "Filter out artifacts, blurry details, and unwanted visual concepts.",
+    sr: "Filtrirajte neželjene detalje, mutnoću i neželjene vizuelne koncepte."
+  },
+  reference: {
+    en: "State the reference image source and what attributes to preserve.",
+    sr: "Navedite izvor referentne slike i koje atribute treba sačuvati."
+  },
+  change: {
+    en: "Describe ONLY the delta. Keep other aspects identical.",
+    sr: "Opišite SAMO izmenu. Ostavite ostale aspekte identičnim."
+  },
+  checkpoint: {
+    en: "Choose the base SD model checkpoint loaded in ComfyUI.",
+    sr: "Izaberite osnovni SD model checkpoint koji je učitan u ComfyUI."
+  },
+  duration: {
+    en: "Video duration in seconds. Longer outputs require more consistency constraints.",
+    sr: "Trajanje videa u sekundama. Duži izlazi zahtevaju jača ograničenja doslednosti."
+  },
+  camera: {
+    en: "Define camera movements (e.g. 'slow pan right', 'dolly zoom').",
+    sr: "Definišite pokrete kamere (npr. 'slow pan right', 'dolly zoom')."
+  },
+  cut: {
+    en: "Define transitions or specify 'single continuous shot'.",
+    sr: "Definišite tranzicije ili navedite 'jedan neprekidan kadar'."
+  },
+  sources: {
+    en: "Grounds Perplexity to official or verified domains only.",
+    sr: "Ograničava Perplexity samo na zvanične ili proverene domene."
+  },
+  searchmode: {
+    en: "Select mode (Search info vs Compare/Evaluate options).",
+    sr: "Izaberite režim (Pretraga informacija vs Poređenje/Evaluacija opcija)."
+  },
+  trigger: {
+    en: "Define the application and the specific event that kicks off the flow.",
+    sr: "Definišite aplikaciju i tačan događaj koji pokreće proces."
+  },
+  actionapp: {
+    en: "Define the target application and action to execute.",
+    sr: "Definišite ciljnu aplikaciju i akciju koju treba izvršiti."
+  },
+  mapping: {
+    en: "Specify which fields flow from trigger to action explicitly.",
+    sr: "Eksplicitno navedite koja polja se prenose iz okidača u akciju."
+  },
+  original: {
+    en: "Paste the raw prompt that needs refactoring or adaptation.",
+    sr: "Nalepite sirovi prompt koji treba refaktorisati ili prilagoditi."
+  },
+  operation: {
+    en: "Decompiler action: Break down structure, simplify wording, or split tasks.",
+    sr: "Akcija dekompajlera: Razlaganje strukture, pojednostavljenje teksta ili podela zadataka."
+  },
+  script: {
+    en: "The exact script or text content to be read by Voice AI.",
+    sr: "Tačan tekst ili scenario koji Glasovni AI treba da izgovori."
+  }
+};
 const common=[['model','select','gpt'],['answer','select','English'],['task','textarea',''],['role','text',''],['context','textarea',''],['format','select','Markdown'],['length','text','e.g., under 250 words']];
 const specs={
 general:{icon:'◈',name:['General prompt','Opšti prompt'],desc:['Fast, clear everyday task','Brz i jasan svakodnevni zadatak'],fields:[...common,['audience','text',''],['constraints','textarea','']]},
@@ -589,11 +844,84 @@ decompiler:{icon:'◇',name:['Prompt decompiler','Prompt dekompajler'],desc:['Br
 };
 const models={gpt:'ChatGPT / GPT-4o',reasoning:'OpenAI o1 / o3',claude:'Claude 4.x',gemini:'Gemini 2.x / 3 Pro',qwen:'Qwen 2.5 Instruct',qwenThinking:'Qwen3 Thinking',deepseek:'DeepSeek-R1',ollama:'Ollama',local:'Llama / Mistral',claudeCode:'Claude Code',cursor:'Cursor / Windsurf',copilot:'GitHub Copilot',bolt:'Bolt / v0 / Lovable',devin:'Devin / SWE-agent',perplexity:'Perplexity / SearchGPT',midjourney:'Midjourney',dalle:'DALL-E 3',stable:'Stable Diffusion',comfy:'ComfyUI',sora:'Sora / Runway / Kling',voice:'ElevenLabs / Murf',zapier:'Zapier / Make / n8n'};
 const selects={model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
+
 function esc(s){return s.replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]))}
 function title(key){return label[key]?.[lang==='en'?0:1]||key}
+
+function isExpressField(activeType, fieldKey) {
+  const expressMap = {
+    general: ['model', 'task', 'constraints'],
+    business: ['model', 'task', 'tone'],
+    project: ['model', 'task', 'steps'],
+    creative: ['model', 'task', 'tone'],
+    analysis: ['model', 'task', 'constraints'],
+    fewshot: ['model', 'task', 'examples'],
+    coding: ['model', 'file', 'desired'],
+    agent: ['model', 'task', 'environment'],
+    image: ['model', 'subject', 'aspect'],
+    imageEdit: ['model', 'reference', 'change'],
+    comfy: ['model', 'subject', 'aspect'],
+    video: ['model', 'subject', 'aspect'],
+    voice: ['model', 'script', 'emotion'],
+    research: ['model', 'task', 'sources'],
+    workflow: ['model', 'trigger', 'actionapp'],
+    decompiler: ['model', 'original', 'task']
+  };
+  return (expressMap[activeType] || ['model', 'task']).includes(fieldKey);
+}
+
+function wrap(key, content) {
+  if (!content) return '';
+  return `<span class="prompt-segment" data-segment="${key}">${esc(content)}</span>`;
+}
+
 function renderTypes(){const el=$('types');el.innerHTML=Object.entries(specs).map(([k,s])=>'<button class="type '+(k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');el.querySelectorAll('.type').forEach(b=>b.onclick=()=>{active=b.dataset.type;render()})}
-function input([key,kind,def]){let control;const ph=placeholder[key]?.[lang==='en'?0:1]||'';if(kind==='textarea')control='<textarea id="f-'+key+'" placeholder="'+esc(ph)+'">'+esc(data[active]?.[key]??'')+'</textarea>';else if(kind==='select')control='<select id="f-'+key+'">'+selects[key].map(([v,n])=>'<option value="'+v+'" '+((data[active]?.[key]??def)===v?'selected':'')+'>'+n+'</option>').join('')+'</select>';else control='<input id="f-'+key+'" value="'+esc(data[active]?.[key]??'')+'" placeholder="'+esc(ph)+'">';return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop'].includes(key)?'full':'')+'"><label>'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+'</div>'}
-function renderFields(){const s=specs[active];$('formTitle').textContent=s.name[lang==='en'?0:1];$('formIntro').textContent=s.desc[lang==='en'?0:1];$('fields').innerHTML=s.fields.map(input).join('');$('fields').querySelectorAll('input,textarea,select').forEach(el=>el.addEventListener('input',()=>{data[active]??={};data[active][el.id.slice(2)]=el.value;build()}))}
+
+function input([key,kind,def]){
+  let control;
+  const ph=placeholder[key]?.[lang==='en'?0:1]||'';
+  if(kind==='textarea')control='<textarea id="f-'+key+'" placeholder="'+esc(ph)+'">'+esc(data[active]?.[key]??'')+'</textarea>';
+  else if(kind==='select')control='<select id="f-'+key+'">'+selects[key].map(([v,n])=>'<option value="'+v+'" '+((data[active]?.[key]??def)===v?'selected':'')+'>'+n+'</option>').join('')+'</select>';
+  else control='<input id="f-'+key+'" value="'+esc(data[active]?.[key]??'')+'" placeholder="'+esc(ph)+'">';
+  
+  let tipHtml = '';
+  if (mode === 'expert' && tips[key]) {
+    const tipText = tips[key][lang];
+    tipHtml = `<div class="field-tip">💡 ${esc(tipText)}</div>`;
+  }
+  
+  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label>'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+'</div>';
+}
+
+function renderFields(){
+  const s=specs[active];
+  $('formTitle').textContent=s.name[lang==='en'?0:1];
+  $('formIntro').textContent=s.desc[lang==='en'?0:1];
+  
+  const visibleFields = mode === 'express' 
+    ? s.fields.filter(([key]) => isExpressField(active, key)) 
+    : s.fields;
+    
+  $('fields').innerHTML=visibleFields.map(input).join('');
+  
+  $('fields').querySelectorAll('input,textarea,select').forEach(el=>{
+    const key=el.id.slice(2);
+    el.addEventListener('input',()=>{
+      data[active]??={};
+      data[active][key]=el.value;
+      build();
+    });
+    el.addEventListener('focus', () => {
+      document.querySelectorAll('.prompt-segment').forEach(s => s.classList.remove('active-highlight'));
+      const target = document.querySelector(`[data-segment="${key}"]`);
+      if (target) target.classList.add('active-highlight');
+    });
+    el.addEventListener('blur', () => {
+      document.querySelectorAll('.prompt-segment').forEach(s => s.classList.remove('active-highlight'));
+    });
+  });
+}
+
 function val(k){
   if(k==='task'){
     let r=data[active]?.[k]??$('f-'+k)?.value;
@@ -608,13 +936,171 @@ function val(k){
   }
   return String(data[active]?.[k]??$('f-'+k)?.value??'').trim();
 }
+
 const row=(k,n=k)=>val(k)?n+': '+val(k):'';
 function examples(){return val('examples')?'<examples>\n'+val('examples').split('\n').filter(Boolean).map((x,i)=>'  <example id="'+(i+1)+'">'+x+'</example>').join('\n')+'\n</examples>':''}
+
 function modelRule(m){return {gpt:'Use a strong role, numbered instructions, numeric limits, and exact output format. Skip preamble. No caveats. Answer directly.',reasoning:'Use a short direct instruction. Solve internally and output only the final answer. Do not show reasoning.',claude:'Use the tagged sections faithfully. Keep solutions minimal. Only make changes directly requested.',gemini:'Base the response only on supplied context. Cite only sources you are certain of. Mark uncertainty as [uncertain].',qwen:'Use a clear role and explicit output format. Keep the prompt focused and state output language.',qwenThinking:'Use a short direct instruction. Reason internally and output only the final answer.',deepseek:'Use a short direct instruction. Output only the final answer, without reasoning or think tags.',ollama:'Use a simple flat prompt. The selected local model must be specified before use.',local:'Use a short flat prompt with a clear role. Avoid deep nesting and complex multi-step instructions.',claudeCode:'Follow the agent scope, forbidden actions, stop conditions, and checkpoints exactly.',cursor:'Edit only the stated file and component. Preserve all listed contracts. Stop when Done When is met.',copilot:'Write the requested function contract, types, edge cases, and forbidden behavior as a focused instruction.',bolt:'Build only the named deliverable. Do not add authentication, dark mode, or unrequested features.',devin:'Respect explicit starting state, target state, forbidden actions, and stop conditions.',perplexity:'Use the requested research mode. Report only what verified results support and cite every factual claim.',midjourney:'Return comma-separated visual descriptors. Subject first; style, mood, lighting, composition next; parameters last.',dalle:'Use a clear prose image description. Describe foreground, midground, background; exclude text unless requested.',stable:'Use weighted prompt syntax when useful and always include a separate negative prompt.',comfy:'Return separate POSITIVE PROMPT and NEGATIVE PROMPT blocks, plus checkpoint and generation settings.',sora:'Specify subject, camera movement, duration, mood, and cut style.',voice:'Specify emotion, pacing, emphasis, pauses, and speech rate.',zapier:'Return numbered trigger-to-action steps and explicit field mapping.'}[m]||''}
-function build(){let m=val('model')||'gpt',task=val('task')||val('desired')||val('subject')||'[Describe the task]';let a=[];if(active==='coding')a=['File: '+val('file'),'Function/Component: [specify if applicable]','Current Behavior: '+val('current'),'Desired Change: '+val('desired'),'Scope: '+val('scope'),'Do NOT touch: '+val('dont'),'Constraints: '+val('constraints'),'Done When: '+val('success')].filter(Boolean);else if(active==='agent')a=['## Objective\n'+task,'## Environment\n'+val('environment'),'## Starting State\n'+val('current'),'## Target State\n'+val('desired'),'## Allowed Actions\n'+val('scope'),'## Forbidden Actions\n'+val('dont'),'## Stop Conditions\n'+val('stop'),'## Checkpoints\nAfter each major step output: ✅ [what was completed].','## Done When\n'+val('success')].filter(Boolean);else if(active==='image')a=[val('subject'),val('action'),val('setting'),val('style'),val('mood'),val('lighting'),val('palette'),val('composition'),'--ar '+val('aspect'),val('negative')?'--no '+val('negative'):''].filter(Boolean);else if(active==='imageEdit')a=['Reference image: '+val('reference'),'What to change: '+val('change'),'What to keep exactly the same: '+val('constraints'),'Negative prompt: '+val('negative')].filter(Boolean);else if(active==='comfy')a=['POSITIVE PROMPT:\n'+[val('subject'),val('style'),val('mood'),val('lighting'),val('composition')].filter(Boolean).join(', '),'NEGATIVE PROMPT:\n'+val('negative'),'CHECKPOINT: '+val('checkpoint'),'RESOLUTION: '+val('aspect'),'SAMPLER: Euler a\nCFG SCALE: 7\nSTEPS: 20-30'];else if(active==='video')a=[val('subject'),val('action'),val('setting'),'Camera: '+val('camera'),'Duration: '+val('duration'),'Mood: '+val('mood'),'Lighting: '+val('lighting'),'Cut style: '+val('cut'),'Aspect ratio: '+val('aspect')].filter(Boolean);else if(active==='voice')a=['Script: '+val('script'),'Emotion: '+val('emotion'),'Pacing: '+val('pacing'),'Speech rate: '+val('speechrate')].filter(Boolean);else if(active==='workflow')a=['Trigger: '+val('trigger'),'Action: '+val('actionapp'),'Data mapping: '+val('mapping'),'Constraints: '+val('constraints'),'Done when: '+val('success')].filter(Boolean);else if(active==='decompiler')a=['Original prompt:\n'+val('original'),'Operation: '+val('operation'),'Task: '+task,'Output format: '+val('format')].filter(Boolean);else a=[row('role','Role'),row('context','Context'),row('audience','Audience'),'Task: '+task,row('steps','Steps'),row('tone','Tone'),row('constraints','Constraints'),row('sources','Sources'),row('success','Success criteria'),'Output language: '+val('answer'),'Output format: '+val('format'),'Maximum length: '+val('length'),examples()].filter(Boolean);
-if(active==='analysis'&&!['reasoning','qwenThinking','deepseek'].includes(m))a.splice(1,0,'Analyze the problem carefully before answering.');if(active==='research')a.push('Use only verified information from the approved sources. If a claim is uncertain, write [uncertain].');let out;if(m==='claude'&&!['image','comfy'].includes(active))out='<role>'+esc(val('role')||'Expert assistant')+'</role>\n<task>'+esc(task)+'</task>\n<context>'+esc(val('context'))+'</context>\n<constraints>'+esc(val('constraints')+'\nOutput format: '+val('format')+'\nMaximum length: '+val('length'))+'</constraints>\n<output_format>'+esc(val('success')||val('format'))+'</output_format>\n'+examples();else out=[modelRule(m),'',...a].filter(Boolean).join('\n\n');$('output').textContent=out;$('modelBadge').textContent=models[m]||m;$('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m)}
+
+function build(){
+  let m=val('model')||'gpt',task=val('task')||val('desired')||val('subject')||'[Describe the task]';
+  let a=[];
+  if(active==='coding') {
+    a=[
+      wrap('file', val('file') ? 'File: '+val('file') : ''),
+      wrap('file', 'Function/Component: [specify if applicable]'),
+      wrap('current', val('current') ? 'Current Behavior: '+val('current') : ''),
+      wrap('desired', val('desired') ? 'Desired Change: '+val('desired') : ''),
+      wrap('scope', val('scope') ? 'Scope: '+val('scope') : ''),
+      wrap('dont', val('dont') ? 'Do NOT touch: '+val('dont') : ''),
+      wrap('constraints', val('constraints') ? 'Constraints: '+val('constraints') : ''),
+      wrap('success', val('success') ? 'Done When: '+val('success') : '')
+    ].filter(Boolean);
+  } else if(active==='agent') {
+    a=[
+      wrap('task', '## Objective\n'+task),
+      wrap('environment', val('environment') ? '## Environment\n'+val('environment') : ''),
+      wrap('current', val('current') ? '## Starting State\n'+val('current') : ''),
+      wrap('desired', val('desired') ? '## Target State\n'+val('desired') : ''),
+      wrap('scope', val('scope') ? '## Allowed Actions\n'+val('scope') : ''),
+      wrap('dont', val('dont') ? '## Forbidden Actions\n'+val('dont') : ''),
+      wrap('stop', val('stop') ? '## Stop Conditions\n'+val('stop') : ''),
+      wrap('agent', '## Checkpoints\nAfter each major step output: ✅ [what was completed].'),
+      wrap('success', val('success') ? '## Done When\n'+val('success') : '')
+    ].filter(Boolean);
+  } else if(active==='image') {
+    a=[
+      wrap('subject', val('subject')),
+      wrap('action', val('action')),
+      wrap('setting', val('setting')),
+      wrap('style', val('style')),
+      wrap('mood', val('mood')),
+      wrap('lighting', val('lighting')),
+      wrap('palette', val('palette')),
+      wrap('composition', val('composition')),
+      wrap('aspect', '--ar '+val('aspect')),
+      wrap('negative', val('negative') ? '--no '+val('negative') : '')
+    ].filter(Boolean);
+  } else if(active==='imageEdit') {
+    a=[
+      wrap('reference', val('reference') ? 'Reference image: '+val('reference') : ''),
+      wrap('change', val('change') ? 'What to change: '+val('change') : ''),
+      wrap('constraints', val('constraints') ? 'What to keep exactly the same: '+val('constraints') : ''),
+      wrap('negative', val('negative') ? 'Negative prompt: '+val('negative') : '')
+    ].filter(Boolean);
+  } else if(active==='comfy') {
+    a=[
+      wrap('subject', 'POSITIVE PROMPT:\n'+[val('subject'),val('style'),val('mood'),val('lighting'),val('composition')].filter(Boolean).join(', ')),
+      wrap('negative', val('negative') ? 'NEGATIVE PROMPT:\n'+val('negative') : ''),
+      wrap('checkpoint', val('checkpoint') ? 'CHECKPOINT: '+val('checkpoint') : ''),
+      wrap('aspect', val('aspect') ? 'RESOLUTION: '+val('aspect') : ''),
+      wrap('comfy', 'SAMPLER: Euler a\nCFG SCALE: 7\nSTEPS: 20-30')
+    ].filter(Boolean);
+  } else if(active==='video') {
+    a=[
+      wrap('subject', val('subject')),
+      wrap('action', val('action')),
+      wrap('setting', val('setting')),
+      wrap('camera', val('camera') ? 'Camera: '+val('camera') : ''),
+      wrap('duration', val('duration') ? 'Duration: '+val('duration') : ''),
+      wrap('mood', val('mood') ? 'Mood: '+val('mood') : ''),
+      wrap('lighting', val('lighting') ? 'Lighting: '+val('lighting') : ''),
+      wrap('cut', val('cut') ? 'Cut style: '+val('cut') : ''),
+      wrap('aspect', val('aspect') ? 'Aspect ratio: '+val('aspect') : '')
+    ].filter(Boolean);
+  } else if(active==='voice') {
+    a=[
+      wrap('script', val('script') ? 'Script: '+val('script') : ''),
+      wrap('emotion', val('emotion') ? 'Emotion: '+val('emotion') : ''),
+      wrap('pacing', val('pacing') ? 'Pacing: '+val('pacing') : ''),
+      wrap('speechrate', val('speechrate') ? 'Speech rate: '+val('speechrate') : '')
+    ].filter(Boolean);
+  } else if(active==='workflow') {
+    a=[
+      wrap('trigger', val('trigger') ? 'Trigger: '+val('trigger') : ''),
+      wrap('actionapp', val('actionapp') ? 'Action: '+val('actionapp') : ''),
+      wrap('mapping', val('mapping') ? 'Data mapping: '+val('mapping') : ''),
+      wrap('constraints', val('constraints') ? 'Constraints: '+val('constraints') : ''),
+      wrap('success', val('success') ? 'Done when: '+val('success') : '')
+    ].filter(Boolean);
+  } else if(active==='decompiler') {
+    a=[
+      wrap('original', val('original') ? 'Original prompt:\n'+val('original') : ''),
+      wrap('operation', val('operation') ? 'Operation: '+val('operation') : ''),
+      wrap('task', val('task') ? 'Task: '+task : ''),
+      wrap('format', val('format') ? 'Output format: '+val('format') : '')
+    ].filter(Boolean);
+  } else {
+    a=[
+      wrap('role', row('role','Role')),
+      wrap('context', row('context','Context')),
+      wrap('audience', row('audience','Audience')),
+      wrap('task', 'Task: '+task),
+      wrap('steps', row('steps','Steps')),
+      wrap('tone', row('tone','Tone')),
+      wrap('constraints', row('constraints','Constraints')),
+      wrap('sources', row('sources','Sources')),
+      wrap('success', row('success','Success criteria')),
+      wrap('answer', 'Output language: '+val('answer')),
+      wrap('format', 'Output format: '+val('format')),
+      wrap('length', 'Maximum length: '+val('length')),
+      wrap('examples', examples())
+    ].filter(Boolean);
+  }
+  
+  if(active==='analysis'&&!['reasoning','qwenThinking','deepseek'].includes(m)) {
+    a.splice(1,0,wrap('constraints', 'Analyze the problem carefully before answering.'));
+  }
+  if(active==='research') {
+    a.push(wrap('constraints', 'Use only verified information from the approved sources. If a claim is uncertain, write [uncertain].'));
+  }
+  
+  let out;
+  if(m==='claude'&&!['image','comfy'].includes(active)) {
+    out=wrap('model', '<role>'+esc(val('role')||'Expert assistant')+'</role>\n<task>'+esc(task)+'</task>\n<context>'+esc(val('context'))+'</context>\n<constraints>'+esc(val('constraints')+'\nOutput format: '+val('format')+'\nMaximum length: '+val('length'))+'</constraints>\n<output_format>'+esc(val('success')||val('format'))+'</output_format>\n'+examples());
+  } else {
+    out=[wrap('model', modelRule(m)), '', ...a].filter(Boolean).join('\n\n');
+  }
+  
+  $('output').innerHTML=out;
+  $('modelBadge').textContent=models[m]||m;
+  $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m);
+}
+
 function render(){renderTypes();renderFields();build()}
-function setLang(l){lang=l;let q=L[l];$('tagline').textContent=q.tag;$('clearT').textContent=q.clear;$('typeT').textContent=q.type;$('modeT').textContent=q.mode;$('copyT').textContent=q.copy;$('runT').textContent=q.run;$('downloadT').textContent=q.down;$('previewT').textContent=q.prev;$('previewH').textContent=q.opt;document.querySelectorAll('[data-lang]').forEach(x=>x.classList.toggle('on',x.dataset.lang===l));render()}
+
+function setLang(l){
+  lang=l;
+  let q=L[l];
+  $('tagline').textContent=q.tag;
+  $('clearT').textContent=q.clear;
+  $('typeT').textContent=q.type;
+  $('modeT').textContent=q.mode;
+  $('copyT').textContent=q.copy;
+  $('runT').textContent=q.run;
+  $('downloadT').textContent=q.down;
+  $('previewT').textContent=q.prev;
+  $('previewH').textContent=q.opt;
+  $('modeToggleLabel').textContent = q.modeToggleLabel;
+  $('btnExpress').textContent = q.express;
+  $('btnExpert').textContent = q.expert;
+  document.querySelectorAll('[data-lang]').forEach(x=>x.classList.toggle('on',x.dataset.lang===l));
+  render();
+}
+
+$('btnExpress').onclick = () => {
+  mode = 'express';
+  $('btnExpress').classList.add('on');
+  $('btnExpert').classList.remove('on');
+  renderFields();
+};
+$('btnExpert').onclick = () => {
+  mode = 'expert';
+  $('btnExpert').classList.add('on');
+  $('btnExpress').classList.remove('on');
+  renderFields();
+};
+
 const modelUrls = {
   gpt: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
   reasoning: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
@@ -634,14 +1120,16 @@ const modelUrls = {
   copilot: () => `https://github.com/features/copilot`,
   devin: () => `https://devin.ai/`
 };
+
 $('run').onclick = () => {
   const m = val('model') || 'gpt';
   const promptText = $('output').textContent;
   const getUrl = modelUrls[m] || (p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`);
   window.open(getUrl(promptText), '_blank');
 };
-$('copy').onclick=async()=>{await navigator.clipboard.writeText($('output').textContent);$('status').textContent=L[lang].copied};
-$('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('output').textContent],{type:'text/plain'}));a.download='optimized-prompt.txt';a.click();$('status').textContent=L[lang].downloaded};
+
+$('copy').onclick=async()=>{await navigator.clipboard.writeText($('output').innerText || $('output').textContent);$('status').textContent=L[lang].copied};
+$('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('output').innerText || $('output').textContent],{type:'text/plain'}));a.download='optimized-prompt.txt';a.click();$('status').textContent=L[lang].downloaded};
 $('clear').onclick=()=>{data[active]={};$('status').textContent='';render()};
 document.querySelectorAll('[data-lang]').forEach(x=>x.onclick=()=>setLang(x.dataset.lang));
 render();
