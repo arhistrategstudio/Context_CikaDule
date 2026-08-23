@@ -349,6 +349,7 @@ select option {
   gap: 12px;
   align-items: center;
   margin-top: 24px;
+  flex-wrap: wrap;
 }
 
 .primary, .secondary {
@@ -421,6 +422,31 @@ select option {
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.badge-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge.tokens {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(99, 102, 241, 0.1);
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.badge.savings {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(236, 72, 153, 0.1);
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .note {
@@ -502,12 +528,50 @@ select option {
   box-shadow: 0 2px 8px var(--primary-glow);
 }
 
+/* Compact/optimization toggle - visually distinct from Express/Learn group */
+.compact-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.05);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.compact-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+.compact-btn:hover {
+  color: var(--text-main);
+}
+.compact-btn.on {
+  background: var(--secondary);
+  color: #ffffff;
+  box-shadow: 0 2px 8px var(--secondary-glow);
+}
+
 .field-tip {
   font-size: 11px;
   color: var(--secondary);
   margin-top: 4px;
   opacity: 0.85;
   line-height: 1.35;
+}
+
+.field-tokens {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: 4px;
+  opacity: 0.7;
+  text-align: right;
 }
 
 /* Highlight Segments Styles */
@@ -578,6 +642,9 @@ select option {
   #clear {
     margin-left: 0;
   }
+  .badge-row {
+    justify-content: flex-start;
+  }
 }
 </style>
 </head>
@@ -612,11 +679,17 @@ select option {
         <h1 id="formTitle"></h1>
         <p class="intro" id="formIntro" style="margin: 0;"></p>
       </div>
-      <div class="mode-toggle-container">
-        <span id="modeToggleLabel">Mode:</span>
-        <div class="mode-toggle-buttons">
-          <button class="mode-btn on" id="btnExpress">Express</button>
-          <button class="mode-btn" id="btnExpert">Learn</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="mode-toggle-container">
+          <span id="modeToggleLabel">Mode:</span>
+          <div class="mode-toggle-buttons">
+            <button class="mode-btn on" id="btnExpress">Express</button>
+            <button class="mode-btn" id="btnExpert">Learn</button>
+          </div>
+        </div>
+        <div class="compact-toggle-container">
+          <span id="compactToggleLabel">⚡</span>
+          <button class="compact-btn" id="btnCompact" title="Mechanically strip filler words and collapse blank lines to reduce token count">COMPACT</button>
         </div>
       </div>
     </div>
@@ -634,15 +707,19 @@ select option {
         <p class="eyebrow" id="previewT">LIVE PROMPT PREVIEW</p>
         <h1 id="previewH">Optimized prompt</h1>
       </div>
-      <span class="badge" id="modelBadge"></span>
+      <div class="badge-row">
+        <span class="badge" id="modelBadge"></span>
+        <span class="badge tokens" id="tokenBadge" title="Estimated token count of the full prompt below">≈0 tokens</span>
+        <span class="badge savings" id="savingsBadge" style="display:none"></span>
+      </div>
     </div>
     <p class="note" id="note"></p>
     <div class="output" id="output"></div>
   </section>
 </main>
 <script>
-const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express';
-const L={en:{tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',clear:'CLEAR ACTIVE FORM',type:'Context type / template',mode:'ACTIVE WORKSPACE',copy:'COPY PROMPT',down:'DOWNLOAD .TXT',prev:'LIVE PROMPT PREVIEW',opt:'Optimized prompt',copied:'Prompt copied.',downloaded:'File downloaded.',run:'RUN IN MODEL',modeToggleLabel:'MODE:',express:'Express',expert:'Learn'},sr:{tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',clear:'OČISTI AKTIVNI OBRAZAC',type:'Tip konteksta / šablon',mode:'AKTIVNI RADNI PROSTOR',copy:'KOPIRAJ PROMPT',down:'PREUZMI .TXT',prev:'PREGLED PROMPTA UŽIVO',opt:'Optimizovani prompt',copied:'Prompt je kopiran.',downloaded:'Fajl je preuzet.',run:'POKRENI U MODELU',modeToggleLabel:'REŽIM:',express:'Brzi',expert:'Edukativni'}};
+const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express',compact=false;
+const L={en:{tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',clear:'CLEAR ACTIVE FORM',type:'Context type / template',mode:'ACTIVE WORKSPACE',copy:'COPY PROMPT',down:'DOWNLOAD .TXT',prev:'LIVE PROMPT PREVIEW',opt:'Optimized prompt',copied:'Prompt copied.',downloaded:'File downloaded.',run:'RUN IN MODEL',modeToggleLabel:'MODE:',express:'Express',expert:'Learn',compactLabel:'COMPACT',compactOnNote:'Compact mode: filler words stripped, blank lines collapsed.'},sr:{tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',clear:'OČISTI AKTIVNI OBRAZAC',type:'Tip konteksta / šablon',mode:'AKTIVNI RADNI PROSTOR',copy:'KOPIRAJ PROMPT',down:'PREUZMI .TXT',prev:'PREGLED PROMPTA UŽIVO',opt:'Optimizovani prompt',copied:'Prompt je kopiran.',downloaded:'Fajl je preuzet.',run:'POKRENI U MODELU',modeToggleLabel:'REŽIM:',express:'Brzi',expert:'Edukativni',compactLabel:'SAŽMI',compactOnNote:'Compact režim: uklonjene su suvišne reči, prazni redovi su spojeni.'}};
 const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
 const label={model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora']};
 const tips = {
@@ -845,6 +922,96 @@ decompiler:{icon:'◇',name:['Prompt decompiler','Prompt dekompajler'],desc:['Br
 const models={gpt:'ChatGPT / GPT-4o',reasoning:'OpenAI o1 / o3',claude:'Claude 4.x',gemini:'Gemini 2.x / 3 Pro',qwen:'Qwen 2.5 Instruct',qwenThinking:'Qwen3 Thinking',deepseek:'DeepSeek-R1',ollama:'Ollama',local:'Llama / Mistral',claudeCode:'Claude Code',cursor:'Cursor / Windsurf',copilot:'GitHub Copilot',bolt:'Bolt / v0 / Lovable',devin:'Devin / SWE-agent',perplexity:'Perplexity / SearchGPT',midjourney:'Midjourney',dalle:'DALL-E 3',stable:'Stable Diffusion',comfy:'ComfyUI',sora:'Sora / Runway / Kling',voice:'ElevenLabs / Murf',zapier:'Zapier / Make / n8n'};
 const selects={model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
 
+/* ============================================================
+   TOKEN COUNTER
+   Tries to load the real cl100k (GPT-3.5/4 family) tokenizer from
+   a CDN at runtime. If that fails (offline, CDN blocked, etc.) it
+   falls back to a documented heuristic estimate so the counter
+   never breaks. The badge always makes clear which mode is active.
+   ============================================================ */
+let realTokenizer = null;
+let tokenizerStatus = 'loading'; // 'loading' | 'ready' | 'fallback'
+
+(async () => {
+  try {
+    const mod = await import('https://cdn.jsdelivr.net/npm/gpt-tokenizer/+esm');
+    if (mod && typeof mod.countTokens === 'function') {
+      realTokenizer = mod.countTokens;
+      tokenizerStatus = 'ready';
+    } else {
+      tokenizerStatus = 'fallback';
+    }
+  } catch (e) {
+    tokenizerStatus = 'fallback';
+  }
+  build();
+})();
+
+function heuristicTokenCount(text) {
+  if (!text) return 0;
+  const chars = text.length;
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  // Average of a char-based estimate (~4 chars/token for English)
+  // and a word-based estimate (~1.3 tokens/word). Blending both
+  // keeps the estimate reasonable across English and Serbian text.
+  const estimate = (chars / 4 + words * 1.3) / 2;
+  return Math.max(text.trim() ? 1 : 0, Math.round(estimate));
+}
+
+function countTokens(text) {
+  if (!text) return 0;
+  if (tokenizerStatus === 'ready' && realTokenizer) {
+    try {
+      return realTokenizer(text);
+    } catch (e) {
+      return heuristicTokenCount(text);
+    }
+  }
+  return heuristicTokenCount(text);
+}
+
+/* ============================================================
+   COMPACT MODE — mechanical, rule-based token reduction.
+   This is NOT an AI rewrite (this app has no backend/API key).
+   It only: strips a fixed list of filler phrases, collapses
+   repeated whitespace/blank lines, and trims. Nothing here
+   changes the meaning of what the user typed.
+   ============================================================ */
+const FILLER_PATTERNS = [
+  /\bI would like you to\b/gi,
+  /\bI want you to\b/gi,
+  /\bcan you please\b/gi,
+  /\bcould you please\b/gi,
+  /\bplease\b/gi,
+  /\bjust\b/gi,
+  /\bkind of\b/gi,
+  /\bsort of\b/gi,
+  /\bbasically\b/gi,
+  /\bactually\b/gi,
+  /\bvery\b/gi,
+  /\breally\b/gi,
+  /\bin order to\b/gi,
+  /\bmolim te\b/gi,
+  /\bako mozes\b/gi,
+  /\bako možeš\b/gi,
+  /\bnekako\b/gi,
+  /\bbukvalno\b/gi
+];
+
+function compactText(str) {
+  if (!str) return str;
+  let out = str;
+  FILLER_PATTERNS.forEach(re => { out = out.replace(re, ''); });
+  out = out.replace(/[ \t]{2,}/g, ' ');
+  out = out.replace(/\s+([,.;:])/g, '$1');
+  out = out.trim();
+  return out;
+}
+
+function collapseBlankLines(str) {
+  return str.replace(/\n{3,}/g, '\n\n').trim();
+}
+
 function esc(s){return s.replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]))}
 function title(key){return label[key]?.[lang==='en'?0:1]||key}
 
@@ -889,8 +1056,14 @@ function input([key,kind,def]){
     const tipText = tips[key][lang];
     tipHtml = `<div class="field-tip">💡 ${esc(tipText)}</div>`;
   }
+
+  let tokensHtml = '';
+  if (kind === 'textarea') {
+    const currentVal = data[active]?.[key] ?? '';
+    tokensHtml = `<div class="field-tokens" id="ft-${key}">${countTokens(currentVal)} tok</div>`;
+  }
   
-  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label>'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+'</div>';
+  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label>'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
 }
 
 function renderFields(){
@@ -909,6 +1082,8 @@ function renderFields(){
     el.addEventListener('input',()=>{
       data[active]??={};
       data[active][key]=el.value;
+      const ftEl = $('ft-'+key);
+      if(ftEl) ftEl.textContent = countTokens(el.value) + ' tok';
       build();
     });
     el.addEventListener('focus', () => {
@@ -942,7 +1117,7 @@ function examples(){return val('examples')?'<examples>\n'+val('examples').split(
 
 function modelRule(m){return {gpt:'Use a strong role, numbered instructions, numeric limits, and exact output format. Skip preamble. No caveats. Answer directly.',reasoning:'Use a short direct instruction. Solve internally and output only the final answer. Do not show reasoning.',claude:'Use the tagged sections faithfully. Keep solutions minimal. Only make changes directly requested.',gemini:'Base the response only on supplied context. Cite only sources you are certain of. Mark uncertainty as [uncertain].',qwen:'Use a clear role and explicit output format. Keep the prompt focused and state output language.',qwenThinking:'Use a short direct instruction. Reason internally and output only the final answer.',deepseek:'Use a short direct instruction. Output only the final answer, without reasoning or think tags.',ollama:'Use a simple flat prompt. The selected local model must be specified before use.',local:'Use a short flat prompt with a clear role. Avoid deep nesting and complex multi-step instructions.',claudeCode:'Follow the agent scope, forbidden actions, stop conditions, and checkpoints exactly.',cursor:'Edit only the stated file and component. Preserve all listed contracts. Stop when Done When is met.',copilot:'Write the requested function contract, types, edge cases, and forbidden behavior as a focused instruction.',bolt:'Build only the named deliverable. Do not add authentication, dark mode, or unrequested features.',devin:'Respect explicit starting state, target state, forbidden actions, and stop conditions.',perplexity:'Use the requested research mode. Report only what verified results support and cite every factual claim.',midjourney:'Return comma-separated visual descriptors. Subject first; style, mood, lighting, composition next; parameters last.',dalle:'Use a clear prose image description. Describe foreground, midground, background; exclude text unless requested.',stable:'Use weighted prompt syntax when useful and always include a separate negative prompt.',comfy:'Return separate POSITIVE PROMPT and NEGATIVE PROMPT blocks, plus checkpoint and generation settings.',sora:'Specify subject, camera movement, duration, mood, and cut style.',voice:'Specify emotion, pacing, emphasis, pauses, and speech rate.',zapier:'Return numbered trigger-to-action steps and explicit field mapping.'}[m]||''}
 
-function build(){
+function buildRaw(){
   let m=val('model')||'gpt',task=val('task')||val('desired')||val('subject')||'[Describe the task]';
   let a=[];
   if(active==='coding') {
@@ -958,15 +1133,15 @@ function build(){
     ].filter(Boolean);
   } else if(active==='agent') {
     a=[
-      wrap('task', '## Objective\n'+task),
-      wrap('environment', val('environment') ? '## Environment\n'+val('environment') : ''),
-      wrap('current', val('current') ? '## Starting State\n'+val('current') : ''),
-      wrap('desired', val('desired') ? '## Target State\n'+val('desired') : ''),
-      wrap('scope', val('scope') ? '## Allowed Actions\n'+val('scope') : ''),
-      wrap('dont', val('dont') ? '## Forbidden Actions\n'+val('dont') : ''),
-      wrap('stop', val('stop') ? '## Stop Conditions\n'+val('stop') : ''),
-      wrap('agent', '## Checkpoints\nAfter each major step output: ✅ [what was completed].'),
-      wrap('success', val('success') ? '## Done When\n'+val('success') : '')
+      wrap('task', (compact?'Objective: ':'## Objective\n')+task),
+      wrap('environment', val('environment') ? (compact?'Environment: ':'## Environment\n')+val('environment') : ''),
+      wrap('current', val('current') ? (compact?'Starting State: ':'## Starting State\n')+val('current') : ''),
+      wrap('desired', val('desired') ? (compact?'Target State: ':'## Target State\n')+val('desired') : ''),
+      wrap('scope', val('scope') ? (compact?'Allowed Actions: ':'## Allowed Actions\n')+val('scope') : ''),
+      wrap('dont', val('dont') ? (compact?'Forbidden Actions: ':'## Forbidden Actions\n')+val('dont') : ''),
+      wrap('stop', val('stop') ? (compact?'Stop Conditions: ':'## Stop Conditions\n')+val('stop') : ''),
+      wrap('agent', compact ? '' : '## Checkpoints\nAfter each major step output: ✅ [what was completed].'),
+      wrap('success', val('success') ? (compact?'Done When: ':'## Done When\n')+val('success') : '')
     ].filter(Boolean);
   } else if(active==='image') {
     a=[
@@ -1061,10 +1236,45 @@ function build(){
   } else {
     out=[wrap('model', modelRule(m)), '', ...a].filter(Boolean).join('\n\n');
   }
-  
-  $('output').innerHTML=out;
-  $('modelBadge').textContent=models[m]||m;
-  $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m);
+  return { out, m };
+}
+
+function build(){
+  const { out: rawOut, m } = buildRaw();
+
+  let finalOut = rawOut;
+  let rawTokens = countTokens(rawOut.replace(/<[^>]+>/g,''));
+  let finalTokens = rawTokens;
+  let savingsPct = 0;
+
+  if (compact) {
+    // Apply mechanical compaction to the plain-text version, then
+    // re-wrap it so the highlight-on-focus behavior keeps working.
+    const plain = rawOut.replace(/<[^>]+>/g,'');
+    const compacted = collapseBlankLines(compactText(plain));
+    finalOut = esc(compacted).replace(/\n/g,'\n');
+    finalTokens = countTokens(compacted);
+    savingsPct = rawTokens > 0 ? Math.round((1 - finalTokens / rawTokens) * 100) : 0;
+  }
+
+  $('output').innerHTML = finalOut;
+  $('modelBadge').textContent = models[m] || m;
+
+  const tokenLabel = tokenizerStatus === 'ready' ? '' : ' (est.)';
+  $('tokenBadge').textContent = finalTokens + ' tok' + tokenLabel;
+  $('tokenBadge').title = tokenizerStatus === 'ready'
+    ? 'Counted with the real cl100k GPT tokenizer.'
+    : 'Approximate estimate (offline heuristic) — tokenizer library did not load.';
+
+  const savingsEl = $('savingsBadge');
+  if (compact && savingsPct > 0) {
+    savingsEl.style.display = '';
+    savingsEl.textContent = '-' + savingsPct + '% (compact)';
+  } else {
+    savingsEl.style.display = 'none';
+  }
+
+  $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m) + (compact ? ' · ' + L[lang].compactOnNote : '');
 }
 
 function render(){renderTypes();renderFields();build()}
@@ -1084,6 +1294,7 @@ function setLang(l){
   $('modeToggleLabel').textContent = q.modeToggleLabel;
   $('btnExpress').textContent = q.express;
   $('btnExpert').textContent = q.expert;
+  $('btnCompact').textContent = q.compactLabel;
   document.querySelectorAll('[data-lang]').forEach(x=>x.classList.toggle('on',x.dataset.lang===l));
   render();
 }
@@ -1093,12 +1304,19 @@ $('btnExpress').onclick = () => {
   $('btnExpress').classList.add('on');
   $('btnExpert').classList.remove('on');
   renderFields();
+  build();
 };
 $('btnExpert').onclick = () => {
   mode = 'expert';
   $('btnExpert').classList.add('on');
   $('btnExpress').classList.remove('on');
   renderFields();
+  build();
+};
+$('btnCompact').onclick = () => {
+  compact = !compact;
+  $('btnCompact').classList.toggle('on', compact);
+  build();
 };
 
 const modelUrls = {
