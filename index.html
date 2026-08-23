@@ -590,6 +590,178 @@ select option {
   padding-left: 6px;
 }
 
+/* API Settings Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-content {
+  background: #121215;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  padding: 24px;
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.25);
+  transform: scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-overlay.open .modal-content {
+  transform: scale(1);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 12px;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.modal-close:hover {
+  color: var(--text-main);
+}
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-body label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  border-top: 1px solid var(--panel-border);
+  padding-top: 16px;
+}
+
+#btnApiSettings:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-main) !important;
+  border-color: var(--panel-border-hover) !important;
+}
+
+/* Tabs Styling */
+.preview-tabs-container {
+  display: flex;
+  border-bottom: 1px solid var(--panel-border);
+  margin-bottom: 12px;
+}
+.preview-tabs {
+  display: flex;
+  gap: 4px;
+}
+.tab-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+.tab-btn:hover {
+  color: var(--text-main);
+}
+.tab-btn.on {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+/* Copy response button inside output */
+.copy-response-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 5;
+}
+.copy-response-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border-color: var(--panel-border-hover);
+}
+
+/* Response Loader / Blinker */
+.response-loader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+.loader-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: pulse 1.2s infinite ease-in-out;
+}
+.loader-dot:nth-child(2) { animation-delay: 0.2s; }
+.loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.6); opacity: 0.4; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
+
+#response-output-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media(max-width: 1200px) {
   .app {
     grid-template-columns: 240px 1.2fr 1fr;
@@ -646,6 +818,15 @@ select option {
     justify-content: flex-start;
   }
 }
+
+@media(max-width: 480px) {
+  #apiSettingsT {
+    display: none;
+  }
+  #btnApiSettings {
+    padding: 8px 10px !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -658,9 +839,14 @@ select option {
       <small id="tagline">PROMPT ENGINEERING CONSOLE · MODEL-AWARE</small>
     </div>
   </div>
-  <div class="lang">
-    <button class="on" data-lang="en">EN</button>
-    <button data-lang="sr">SR</button>
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <button id="btnApiSettings" style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 1px solid var(--panel-border); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+      🔑 <span id="apiSettingsT">API Settings</span>
+    </button>
+    <div class="lang">
+      <button class="on" data-lang="en">EN</button>
+      <button data-lang="sr">SR</button>
+    </div>
   </div>
 </header>
 <nav class="nav">
@@ -713,13 +899,154 @@ select option {
         <span class="badge savings" id="savingsBadge" style="display:none"></span>
       </div>
     </div>
+    
+    <div class="preview-tabs-container">
+      <div class="preview-tabs">
+        <button id="tabPrompt" class="tab-btn on">Prompt</button>
+        <button id="tabResponse" class="tab-btn">Response</button>
+      </div>
+    </div>
+    
     <p class="note" id="note"></p>
-    <div class="output" id="output"></div>
+    
+    <div style="position: relative; width: 100%;">
+      <div class="output" id="output"></div>
+      
+      <div class="output" id="response-output" style="display: none; position: relative;">
+        <button class="copy-response-btn" id="btnCopyResponse">📋 COPY</button>
+        <div class="response-loader" id="responseLoader" style="display: none;">
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+          <div class="loader-dot"></div>
+          <span id="responseStatusText">Generating response...</span>
+        </div>
+        <div id="response-output-text"></div>
+      </div>
+    </div>
   </section>
 </main>
+
+<!-- API Settings Modal -->
+<div id="apiModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitleT">API Configuration</h2>
+      <button class="modal-close" id="btnValClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <label id="lblProviderT">API Provider</label>
+        <select id="apiProvider">
+          <option value="openai">OpenAI (ChatGPT)</option>
+          <option value="cloudflare">Cloudflare Workers AI</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="openrouter">OpenRouter (Recommended)</option>
+          <option value="anthropic">Anthropic Claude</option>
+          <option value="custom">Custom / Local (Ollama, LM Studio)</option>
+        </select>
+      </div>
+      
+      <div id="cfAccountIdGroup" style="display: none;">
+        <label id="lblCfAccountT">Cloudflare Account ID</label>
+        <input type="text" id="cfAccountId" placeholder="e.g. 1a2b3c4d5e6f7g8h9i0j...">
+      </div>
+      
+      <div>
+        <label id="lblApiKeyT">API Key / Token</label>
+        <input type="password" id="apiKey" placeholder="Paste your API key here...">
+      </div>
+      
+      <div>
+        <label id="lblApiUrlT">API URL (Optional)</label>
+        <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1/chat/completions">
+      </div>
+      
+      <div>
+        <label id="lblApiModelT">Model ID</label>
+        <input type="text" id="apiModel" placeholder="gpt-4o-mini">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary" id="btnApiCancel">Cancel</button>
+      <button class="primary" id="btnApiSave">Save Settings</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express',compact=false;
-const L={en:{tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',clear:'CLEAR ACTIVE FORM',type:'Context type / template',mode:'ACTIVE WORKSPACE',copy:'COPY PROMPT',down:'DOWNLOAD .TXT',prev:'LIVE PROMPT PREVIEW',opt:'Optimized prompt',copied:'Prompt copied.',downloaded:'File downloaded.',run:'RUN IN MODEL',modeToggleLabel:'MODE:',express:'Express',expert:'Learn',compactLabel:'COMPACT',compactOnNote:'Compact mode: filler words stripped, blank lines collapsed.'},sr:{tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',clear:'OČISTI AKTIVNI OBRAZAC',type:'Tip konteksta / šablon',mode:'AKTIVNI RADNI PROSTOR',copy:'KOPIRAJ PROMPT',down:'PREUZMI .TXT',prev:'PREGLED PROMPTA UŽIVO',opt:'Optimizovani prompt',copied:'Prompt je kopiran.',downloaded:'Fajl je preuzet.',run:'POKRENI U MODELU',modeToggleLabel:'REŽIM:',express:'Brzi',expert:'Edukativni',compactLabel:'SAŽMI',compactOnNote:'Compact režim: uklonjene su suvišne reči, prazni redovi su spojeni.'}};
+const L={
+  en:{
+    tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',
+    clear:'CLEAR ACTIVE FORM',
+    type:'Context type / template',
+    mode:'ACTIVE WORKSPACE',
+    copy:'COPY PROMPT',
+    down:'DOWNLOAD .TXT',
+    prev:'LIVE PROMPT PREVIEW',
+    opt:'Optimized prompt',
+    copied:'Prompt copied.',
+    downloaded:'File downloaded.',
+    run:'RUN IN MODEL',
+    modeToggleLabel:'MODE:',
+    express:'Express',
+    expert:'Learn',
+    compactLabel:'COMPACT',
+    compactOnNote:'Compact mode: filler words stripped, blank lines collapsed.',
+    apiSettings:'API Settings',
+    modalTitle:'API Configuration',
+    lblProvider:'API Provider',
+    lblCfAccount:'Cloudflare Account ID',
+    lblApiKey:'API Key / Token',
+    lblApiUrl:'API URL (Optional)',
+    lblApiModel:'Model ID',
+    apiCancel:'Cancel',
+    apiSave:'Save Settings',
+    tabPrompt:'Prompt',
+    tabResponse:'Response',
+    copyResponse:'📋 COPY',
+    copiedResponse:'✓ COPIED!',
+    generating:'⚡ GENERATING...',
+    connecting:'Connecting to API...',
+    receiving:'Receiving response...',
+    errorOccurred:'Error: '
+  },
+  sr:{
+    tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
+    clear:'OČISTI AKTIVNI OBRAZAC',
+    type:'Tip konteksta / šablon',
+    mode:'AKTIVNI RADNI PROSTOR',
+    copy:'KOPIRAJ PROMPT',
+    down:'PREUZMI .TXT',
+    prev:'PREGLED PROMPTA UŽIVO',
+    opt:'Optimizovani prompt',
+    copied:'Prompt je kopiran.',
+    downloaded:'Fajl je preuzet.',
+    run:'POKRENI U MODELU',
+    modeToggleLabel:'REŽIM:',
+    express:'Brzi',
+    expert:'Edukativni',
+    compactLabel:'SAŽMI',
+    compactOnNote:'Compact režim: uklonjene su suvišne reči, prazni redovi su spojeni.',
+    apiSettings:'Podešavanja API-ja',
+    modalTitle:'Konfiguracija API-ja',
+    lblProvider:'API Provajder',
+    lblCfAccount:'Cloudflare Account ID',
+    lblApiKey:'API Ključ / Token',
+    lblApiUrl:'API URL (Opciono)',
+    lblApiModel:'Model ID',
+    apiCancel:'Otkaži',
+    apiSave:'Sačuvaj podešavanja',
+    tabPrompt:'Prompt',
+    tabResponse:'Odgovor',
+    copyResponse:'📋 KOPIRAJ',
+    copiedResponse:'✓ KOPIRANO!',
+    generating:'⚡ GENERIŠEM...',
+    connecting:'Povezujem se sa API-jem...',
+    receiving:'Primam odgovor...',
+    errorOccurred:'Greška: '
+  }
+};
 const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
 const label={model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora']};
 const tips = {
@@ -922,6 +1249,15 @@ decompiler:{icon:'◇',name:['Prompt decompiler','Prompt dekompajler'],desc:['Br
 const models={gpt:'ChatGPT / GPT-4o',reasoning:'OpenAI o1 / o3',claude:'Claude 4.x',gemini:'Gemini 2.x / 3 Pro',qwen:'Qwen 2.5 Instruct',qwenThinking:'Qwen3 Thinking',deepseek:'DeepSeek-R1',ollama:'Ollama',local:'Llama / Mistral',claudeCode:'Claude Code',cursor:'Cursor / Windsurf',copilot:'GitHub Copilot',bolt:'Bolt / v0 / Lovable',devin:'Devin / SWE-agent',perplexity:'Perplexity / SearchGPT',midjourney:'Midjourney',dalle:'DALL-E 3',stable:'Stable Diffusion',comfy:'ComfyUI',sora:'Sora / Runway / Kling',voice:'ElevenLabs / Murf',zapier:'Zapier / Make / n8n'};
 const selects={model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
 
+const defaultEndpoints = {
+  openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
+  cloudflare: { url: '', model: '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b' },
+  gemini: { url: 'https://generativelanguage.googleapis.com/v1beta/models/', model: 'gemini-2.5-flash' },
+  openrouter: { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'google/gemini-2.5-flash' },
+  anthropic: { url: 'https://api.anthropic.com/v1/messages', model: 'claude-3-5-sonnet-latest' },
+  custom: { url: 'http://localhost:11434/v1/chat/completions', model: 'llama3' }
+};
+
 /* ============================================================
    TOKEN COUNTER
    Tries to load the real cl100k (GPT-3.5/4 family) tokenizer from
@@ -1042,7 +1378,7 @@ function wrap(key, content) {
   return `<span class="prompt-segment" data-segment="${key}">${esc(content)}</span>`;
 }
 
-function renderTypes(){const el=$('types');el.innerHTML=Object.entries(specs).map(([k,s])=>'<button class="type '+(k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');el.querySelectorAll('.type').forEach(b=>b.onclick=()=>{active=b.dataset.type;render()})}
+function renderTypes(){const el=$('types');el.innerHTML=Object.entries(specs).map(([k,s])=>'<button class="type '+(k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');el.querySelectorAll('.type').forEach(b=>b.onclick=()=>{active=b.dataset.type;setActiveTab('prompt');render()})}
 
 function input([key,kind,def]){
   let control;
@@ -1277,7 +1613,7 @@ function build(){
   $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m) + (compact ? ' · ' + L[lang].compactOnNote : '');
 }
 
-function render(){renderTypes();renderFields();build()}
+function render(){renderTypes();renderFields();build();updateRunButtonState();}
 
 function setLang(l){
   lang=l;
@@ -1295,6 +1631,21 @@ function setLang(l){
   $('btnExpress').textContent = q.express;
   $('btnExpert').textContent = q.expert;
   $('btnCompact').textContent = q.compactLabel;
+  
+  // Novi API elementi
+  $('apiSettingsT').textContent = q.apiSettings;
+  $('modalTitleT').textContent = q.modalTitle;
+  $('lblProviderT').textContent = q.lblProvider;
+  $('lblCfAccountT').textContent = q.lblCfAccount;
+  $('lblApiKeyT').textContent = q.lblApiKey;
+  $('lblApiUrlT').textContent = q.lblApiUrl;
+  $('lblApiModelT').textContent = q.lblApiModel;
+  $('btnApiCancel').textContent = q.apiCancel;
+  $('btnApiSave').textContent = q.apiSave;
+  $('tabPrompt').textContent = q.tabPrompt;
+  $('tabResponse').textContent = q.tabResponse;
+  $('btnCopyResponse').textContent = q.copyResponse;
+  
   document.querySelectorAll('[data-lang]').forEach(x=>x.classList.toggle('on',x.dataset.lang===l));
   render();
 }
@@ -1303,6 +1654,7 @@ $('btnExpress').onclick = () => {
   mode = 'express';
   $('btnExpress').classList.add('on');
   $('btnExpert').classList.remove('on');
+  setActiveTab('prompt');
   renderFields();
   build();
 };
@@ -1310,6 +1662,7 @@ $('btnExpert').onclick = () => {
   mode = 'expert';
   $('btnExpert').classList.add('on');
   $('btnExpress').classList.remove('on');
+  setActiveTab('prompt');
   renderFields();
   build();
 };
@@ -1339,16 +1692,384 @@ const modelUrls = {
   devin: () => `https://devin.ai/`
 };
 
-$('run').onclick = () => {
+/* ============================================================
+   API INTEGRATION & MODAL WINDOW LOGIC
+   ============================================================ */
+const apiModal = $('apiModal');
+const btnApiSettings = $('btnApiSettings');
+const btnValClose = $('btnValClose');
+const btnApiCancel = $('btnApiCancel');
+const btnApiSave = $('btnApiSave');
+const apiProvider = $('apiProvider');
+const cfAccountIdGroup = $('cfAccountIdGroup');
+
+const tabPrompt = $('tabPrompt');
+const tabResponse = $('tabResponse');
+const outputEl = $('output');
+const responseOutputEl = $('response-output');
+
+function showModal() {
+  apiProvider.value = localStorage.getItem('nc_api_provider') || 'openai';
+  $('apiKey').value = localStorage.getItem('nc_api_key') || '';
+  $('cfAccountId').value = localStorage.getItem('nc_cf_account_id') || '';
+  $('apiUrl').value = localStorage.getItem('nc_api_url') || defaultEndpoints[apiProvider.value].url;
+  $('apiModel').value = localStorage.getItem('nc_api_model') || defaultEndpoints[apiProvider.value].model;
+  
+  toggleCfGroup();
+  apiModal.classList.add('open');
+}
+
+function hideModal() {
+  apiModal.classList.remove('open');
+}
+
+function toggleCfGroup() {
+  if (apiProvider.value === 'cloudflare') {
+    cfAccountIdGroup.style.display = 'block';
+  } else {
+    cfAccountIdGroup.style.display = 'none';
+  }
+}
+
+apiProvider.addEventListener('change', () => {
+  toggleCfGroup();
+  const prov = apiProvider.value;
+  if (defaultEndpoints[prov]) {
+    $('apiUrl').value = defaultEndpoints[prov].url;
+    $('apiModel').value = defaultEndpoints[prov].model;
+  }
+});
+
+btnApiSettings.onclick = showModal;
+btnValClose.onclick = hideModal;
+btnApiCancel.onclick = hideModal;
+
+btnApiSave.onclick = () => {
+  localStorage.setItem('nc_api_provider', apiProvider.value);
+  localStorage.setItem('nc_api_key', $('apiKey').value.trim());
+  localStorage.setItem('nc_cf_account_id', $('cfAccountId').value.trim());
+  localStorage.setItem('nc_api_url', $('apiUrl').value.trim());
+  localStorage.setItem('nc_api_model', $('apiModel').value.trim());
+  hideModal();
+  updateRunButtonState();
+};
+
+function setActiveTab(tab) {
+  if (tab === 'prompt') {
+    tabPrompt.classList.add('on');
+    tabResponse.classList.remove('on');
+    outputEl.style.display = 'block';
+    responseOutputEl.style.display = 'none';
+  } else {
+    tabResponse.classList.add('on');
+    tabPrompt.classList.remove('on');
+    outputEl.style.display = 'none';
+    responseOutputEl.style.display = 'block';
+  }
+}
+
+tabPrompt.onclick = () => setActiveTab('prompt');
+tabResponse.onclick = () => setActiveTab('response');
+
+function updateRunButtonState() {
+  const provider = localStorage.getItem('nc_api_provider');
+  const apiKey = localStorage.getItem('nc_api_key');
+  const cfAccountId = localStorage.getItem('nc_cf_account_id');
+  
+  const hasKey = apiKey && apiKey.trim().length > 0;
+  const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
+  const isCustomOrLocal = provider === 'custom'; 
+  
+  const isConfigured = hasKey || isCfConfigured || isCustomOrLocal;
+  
+  const runBtn = $('run');
+  const runText = $('runT');
+  
+  if (isConfigured) {
+    runBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-hover))';
+    runBtn.style.borderColor = 'var(--primary)';
+    runText.textContent = lang === 'en' ? 'RUN DIRECTLY' : 'POKRENI DIREKTNO';
+  } else {
+    runBtn.style.background = 'linear-gradient(135deg, var(--secondary), var(--secondary-hover))';
+    runBtn.style.borderColor = 'var(--secondary)';
+    runText.textContent = L[lang].run;
+  }
+}
+
+$('run').onclick = async () => {
+  const provider = localStorage.getItem('nc_api_provider');
+  const apiKey = localStorage.getItem('nc_api_key');
+  const cfAccountId = localStorage.getItem('nc_cf_account_id');
+  const customUrl = localStorage.getItem('nc_api_url');
+  const modelId = localStorage.getItem('nc_api_model');
+  
+  const promptText = $('output').innerText || $('output').textContent;
+  
+  const hasKey = apiKey && apiKey.trim().length > 0;
+  const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
+  const isCustomOrLocal = provider === 'custom';
+  
+  if (!hasKey && !isCfConfigured && !isCustomOrLocal) {
+    runExternal(promptText);
+    return;
+  }
+  
+  setActiveTab('response');
+  const responseTextEl = $('response-output-text');
+  const responseLoader = $('responseLoader');
+  
+  responseTextEl.textContent = "";
+  responseLoader.style.display = "flex";
+  $('responseStatusText').textContent = L[lang].connecting;
+  
+  try {
+    if (provider === 'cloudflare') {
+      await callCloudflare(cfAccountId, apiKey, modelId, promptText, responseTextEl);
+    } else if (provider === 'gemini') {
+      await callGemini(apiKey, modelId, customUrl, promptText, responseTextEl);
+    } else if (provider === 'anthropic') {
+      await callAnthropic(apiKey, modelId, customUrl, promptText, responseTextEl);
+    } else {
+      await callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, responseTextEl);
+    }
+  } catch (err) {
+    console.error(err);
+    responseTextEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${L[lang].errorOccurred} ${esc(err.message)}</span><br/><br/><button class="secondary" id="btnErrorFallback" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔄 Fallback to external page</button>`;
+    $('btnErrorFallback').onclick = () => runExternal(promptText);
+  } finally {
+    responseLoader.style.display = "none";
+  }
+};
+
+function runExternal(promptText) {
   const m = val('model') || 'gpt';
-  const promptText = $('output').textContent;
   const getUrl = modelUrls[m] || (p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`);
   window.open(getUrl(promptText), '_blank');
+}
+
+async function callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, outputTextEl) {
+  let url = customUrl;
+  if (!url) {
+    if (provider === 'openai') url = 'https://api.openai.com/v1/chat/completions';
+    else if (provider === 'openrouter') url = 'https://openrouter.ai/api/v1/chat/completions';
+    else url = 'http://localhost:11434/v1/chat/completions'; 
+  }
+  
+  const headers = {
+    'Content-Type': 'application/json'
+  };
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+  
+  if (provider === 'openrouter') {
+    headers['HTTP-Referer'] = window.location.href;
+    headers['X-Title'] = 'Neon Context Console';
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: modelId || (provider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash'),
+      messages: [{ role: 'user', content: promptText }],
+      stream: true
+    })
+  });
+
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try {
+      const errJson = await response.json();
+      errMsg += `: ${errJson.error?.message || JSON.stringify(errJson)}`;
+    } catch(e) {}
+    throw new Error(errMsg);
+  }
+
+  $('responseStatusText').textContent = L[lang].receiving;
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); 
+    
+    for (const line of lines) {
+      const cleaned = line.trim();
+      if (!cleaned) continue;
+      if (cleaned === 'data: [DONE]') continue;
+      
+      if (cleaned.startsWith('data: ')) {
+        try {
+          const json = JSON.parse(cleaned.slice(6));
+          const text = json.choices?.[0]?.delta?.content || '';
+          if (text) {
+            outputTextEl.textContent += text;
+          }
+        } catch (e) {}
+      }
+    }
+  }
+  
+  if (buffer && buffer.startsWith('data: ')) {
+    try {
+      const json = JSON.parse(buffer.slice(6));
+      const text = json.choices?.[0]?.delta?.content || '';
+      if (text) outputTextEl.textContent += text;
+    } catch (e) {}
+  }
+}
+
+async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTextEl) {
+  const model = modelId || '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b';
+  const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/run/${model}`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: promptText }],
+      stream: true
+    })
+  });
+
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try {
+      const errJson = await response.json();
+      errMsg += `: ${JSON.stringify(errJson)}`;
+    } catch(e) {}
+    throw new Error(errMsg);
+  }
+
+  $('responseStatusText').textContent = L[lang].receiving;
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    
+    for (const line of lines) {
+      const cleaned = line.trim();
+      if (!cleaned) continue;
+      if (cleaned === 'data: [DONE]') continue;
+      
+      if (cleaned.startsWith('data: ')) {
+        try {
+          const json = JSON.parse(cleaned.slice(6));
+          const text = json.response || '';
+          if (text) {
+            outputTextEl.textContent += text;
+          }
+        } catch (e) {}
+      }
+    }
+  }
+}
+
+async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl) {
+  const model = modelId || 'gemini-2.5-flash';
+  let url = customUrl || `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  url = `${url}?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: promptText }]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try {
+      const errJson = await response.json();
+      errMsg += `: ${errJson.error?.message || JSON.stringify(errJson)}`;
+    } catch(e) {}
+    throw new Error(errMsg);
+  }
+
+  const json = await response.json();
+  const text = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if (text) {
+    outputTextEl.textContent = text;
+  } else {
+    throw new Error('Empty response from Gemini API');
+  }
+}
+
+async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextEl) {
+  const model = modelId || 'claude-3-5-sonnet-latest';
+  const url = customUrl || 'https://api.anthropic.com/v1/messages';
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'dangerously-allow-browser': 'true' 
+    },
+    body: JSON.stringify({
+      model: model,
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: promptText }]
+    })
+  });
+
+  if (!response.ok) {
+    let errMsg = `HTTP ${response.status}`;
+    try {
+      const errJson = await response.json();
+      errMsg += `: ${errJson.error?.message || JSON.stringify(errJson)}`;
+    } catch(e) {}
+    throw new Error(errMsg);
+  }
+
+  const json = await response.json();
+  const text = json.content?.[0]?.text || '';
+  if (text) {
+    outputTextEl.textContent = text;
+  } else {
+    throw new Error('Empty response from Anthropic API');
+  }
+}
+
+$('btnCopyResponse').onclick = async () => {
+  const text = $('response-output-text').innerText || $('response-output-text').textContent;
+  if (text) {
+    await navigator.clipboard.writeText(text);
+    const originalText = $('btnCopyResponse').textContent;
+    $('btnCopyResponse').textContent = L[lang].copiedResponse;
+    setTimeout(() => {
+      $('btnCopyResponse').textContent = originalText;
+    }, 2000);
+  }
 };
 
 $('copy').onclick=async()=>{await navigator.clipboard.writeText($('output').innerText || $('output').textContent);$('status').textContent=L[lang].copied};
 $('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('output').innerText || $('output').textContent],{type:'text/plain'}));a.download='optimized-prompt.txt';a.click();$('status').textContent=L[lang].downloaded};
-$('clear').onclick=()=>{data[active]={};$('status').textContent='';render()};
+$('clear').onclick=()=>{data[active]={};$('status').textContent='';setActiveTab('prompt');render()};
 document.querySelectorAll('[data-lang]').forEach(x=>x.onclick=()=>setLang(x.dataset.lang));
 render();
 </script>
