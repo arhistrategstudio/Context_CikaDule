@@ -871,6 +871,7 @@ select option {
           <div class="mode-toggle-buttons">
             <button class="mode-btn on" id="btnExpress">Express</button>
             <button class="mode-btn" id="btnExpert">Learn</button>
+            <button class="mode-btn" id="btnAutoDetect">✨ AI AUTO-DETECT</button>
           </div>
         </div>
         <div class="compact-toggle-container">
@@ -975,6 +976,8 @@ select option {
 
 <script>
 const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express',compact=false;
+const WORKER_URL='https://cikadule-prompt-console.arhistrategstudio.workers.dev';
+let autoDetectText='',autoDetectQuestions=[],autoDetectQuestionsFor=null;
 const L={
   en:{
     tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',
@@ -1009,7 +1012,14 @@ const L={
     generating:'⚡ GENERATING...',
     connecting:'Connecting to API...',
     receiving:'Receiving response...',
-    errorOccurred:'Error: '
+    errorOccurred:'Error: ',
+    autodetect:'✨ AI AUTO-DETECT',
+    autodetectPlaceholder:'Describe your task in plain language...',
+    autodetectAnalyze:'Analyze',
+    autodetectAnalyzing:'⚡ ANALYZING...',
+    autodetectNotConfigured:'No API key configured. Add your API key in Settings to use AI Auto-Detect.',
+    autodetectQuestionsTitle:'Clarifying questions from the AI:',
+    autodetectErrorPrefix:'Auto-detect failed: '
   },
   sr:{
     tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
@@ -1044,7 +1054,14 @@ const L={
     generating:'⚡ GENERIŠEM...',
     connecting:'Povezujem se sa API-jem...',
     receiving:'Primam odgovor...',
-    errorOccurred:'Greška: '
+    errorOccurred:'Greška: ',
+    autodetect:'✨ AI AUTO-DETEKCIJA',
+    autodetectPlaceholder:'Opišite zadatak jednostavnim jezikom...',
+    autodetectAnalyze:'Analiziraj',
+    autodetectAnalyzing:'⚡ ANALIZIRAM...',
+    autodetectNotConfigured:'API ključ nije podešen. Dodajte API ključ u Podešavanjima da biste koristili AI Auto-Detekciju.',
+    autodetectQuestionsTitle:'Dodatna pitanja od AI-ja:',
+    autodetectErrorPrefix:'Auto-detekcija nije uspela: '
   }
 };
 const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
@@ -1378,7 +1395,19 @@ function wrap(key, content) {
   return `<span class="prompt-segment" data-segment="${key}">${esc(content)}</span>`;
 }
 
-function renderTypes(){const el=$('types');el.innerHTML=Object.entries(specs).map(([k,s])=>'<button class="type '+(k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');el.querySelectorAll('.type').forEach(b=>b.onclick=()=>{active=b.dataset.type;setActiveTab('prompt');render()})}
+function renderTypes(){const el=$('types');el.innerHTML=Object.entries(specs).map(([k,s])=>'<button class="type '+(k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');el.querySelectorAll('.type').forEach(b=>b.onclick=()=>{
+  active=b.dataset.type;
+  if (mode === 'autodetect') {
+    mode = 'express';
+    autoDetectQuestions = [];
+    autoDetectQuestionsFor = null;
+    $('btnExpress').classList.add('on');
+    $('btnExpert').classList.remove('on');
+    $('btnAutoDetect').classList.remove('on');
+  }
+  setActiveTab('prompt');
+  render();
+})}
 
 function input([key,kind,def]){
   let control;
@@ -1402,16 +1431,37 @@ function input([key,kind,def]){
   return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label>'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
 }
 
+function renderAutoDetect(){
+  const q=L[lang];
+  $('formTitle').textContent=q.autodetect.replace('✨','').trim();
+  $('formIntro').textContent='';
+
+  $('fields').innerHTML=
+    '<div class="full"><textarea id="autodetect-input" placeholder="'+esc(q.autodetectPlaceholder)+'">'+esc(autoDetectText)+'</textarea></div>'+
+    '<div id="autodetect-status" style="margin-top:10px;"></div>'+
+    '<div style="margin-top:12px;"><button class="primary" type="button" id="btnAnalyze">'+esc(q.autodetectAnalyze)+'</button></div>';
+
+  $('autodetect-input').addEventListener('input',()=>{autoDetectText=$('autodetect-input').value;});
+  $('btnAnalyze').onclick=runAutoDetect;
+}
+
 function renderFields(){
+  if (mode === 'autodetect') { renderAutoDetect(); return; }
+
   const s=specs[active];
   $('formTitle').textContent=s.name[lang==='en'?0:1];
   $('formIntro').textContent=s.desc[lang==='en'?0:1];
-  
-  const visibleFields = mode === 'express' 
-    ? s.fields.filter(([key]) => isExpressField(active, key)) 
+
+  const visibleFields = mode === 'express'
+    ? s.fields.filter(([key]) => isExpressField(active, key))
     : s.fields;
-    
-  $('fields').innerHTML=visibleFields.map(input).join('');
+
+  let questionsHtml='';
+  if (autoDetectQuestions.length && autoDetectQuestionsFor === active) {
+    questionsHtml='<div class="full"><div style="margin-bottom:12px; padding:10px; border:1px solid var(--panel-border); border-radius:8px;"><strong>'+esc(L[lang].autodetectQuestionsTitle)+'</strong><ul style="margin:6px 0 0 18px; padding:0;">'+autoDetectQuestions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>';
+  }
+
+  $('fields').innerHTML=questionsHtml+visibleFields.map(input).join('');
   
   $('fields').querySelectorAll('input,textarea,select').forEach(el=>{
     const key=el.id.slice(2);
@@ -1630,6 +1680,7 @@ function setLang(l){
   $('modeToggleLabel').textContent = q.modeToggleLabel;
   $('btnExpress').textContent = q.express;
   $('btnExpert').textContent = q.expert;
+  $('btnAutoDetect').textContent = q.autodetect;
   $('btnCompact').textContent = q.compactLabel;
   
   // Novi API elementi
@@ -1654,6 +1705,7 @@ $('btnExpress').onclick = () => {
   mode = 'express';
   $('btnExpress').classList.add('on');
   $('btnExpert').classList.remove('on');
+  $('btnAutoDetect').classList.remove('on');
   setActiveTab('prompt');
   renderFields();
   build();
@@ -1662,6 +1714,18 @@ $('btnExpert').onclick = () => {
   mode = 'expert';
   $('btnExpert').classList.add('on');
   $('btnExpress').classList.remove('on');
+  $('btnAutoDetect').classList.remove('on');
+  setActiveTab('prompt');
+  renderFields();
+  build();
+};
+$('btnAutoDetect').onclick = () => {
+  mode = 'autodetect';
+  autoDetectQuestions = [];
+  autoDetectQuestionsFor = null;
+  $('btnAutoDetect').classList.add('on');
+  $('btnExpress').classList.remove('on');
+  $('btnExpert').classList.remove('on');
   setActiveTab('prompt');
   renderFields();
   build();
@@ -1848,32 +1912,19 @@ function runExternal(promptText) {
 }
 
 async function callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, outputTextEl) {
-  let url = customUrl;
-  if (!url) {
-    if (provider === 'openai') url = 'https://api.openai.com/v1/chat/completions';
-    else if (provider === 'openrouter') url = 'https://openrouter.ai/api/v1/chat/completions';
-    else url = 'http://localhost:11434/v1/chat/completions'; 
-  }
-  
-  const headers = {
-    'Content-Type': 'application/json'
-  };
-  if (apiKey) {
-    headers['Authorization'] = `Bearer ${apiKey}`;
-  }
-  
-  if (provider === 'openrouter') {
-    headers['HTTP-Referer'] = window.location.href;
-    headers['X-Title'] = 'Neon Context Console';
-  }
-
-  const response = await fetch(url, {
+  const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
-    headers: headers,
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: modelId || (provider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash'),
-      messages: [{ role: 'user', content: promptText }],
-      stream: true
+      provider,
+      apiKey,
+      modelId,
+      url: customUrl,
+      payload: {
+        model: modelId || (provider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash'),
+        messages: [{ role: 'user', content: promptText }],
+        stream: true
+      }
     })
   });
 
@@ -1928,17 +1979,19 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
 
 async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTextEl) {
   const model = modelId || '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b';
-  const url = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/run/${model}`;
-  
-  const response = await fetch(url, {
+
+  const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      messages: [{ role: 'user', content: promptText }],
-      stream: true
+      provider: 'cloudflare',
+      apiKey,
+      modelId: model,
+      cfAccountId,
+      payload: {
+        messages: [{ role: 'user', content: promptText }],
+        stream: true
+      }
     })
   });
 
@@ -1985,18 +2038,20 @@ async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTe
 
 async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl) {
   const model = modelId || 'gemini-2.5-flash';
-  let url = customUrl || `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  url = `${url}?key=${apiKey}`;
 
-  const response = await fetch(url, {
+  const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{
-        parts: [{ text: promptText }]
-      }]
+      provider: 'gemini',
+      apiKey,
+      modelId: model,
+      url: customUrl,
+      payload: {
+        contents: [{
+          parts: [{ text: promptText }]
+        }]
+      }
     })
   });
 
@@ -2020,20 +2075,20 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl) 
 
 async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextEl) {
   const model = modelId || 'claude-3-5-sonnet-latest';
-  const url = customUrl || 'https://api.anthropic.com/v1/messages';
-  
-  const response = await fetch(url, {
+
+  const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'dangerously-allow-browser': 'true' 
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: model,
-      max_tokens: 4000,
-      messages: [{ role: 'user', content: promptText }]
+      provider: 'anthropic',
+      apiKey,
+      modelId: model,
+      url: customUrl,
+      payload: {
+        model: model,
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: promptText }]
+      }
     })
   });
 
@@ -2052,6 +2107,66 @@ async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextE
     outputTextEl.textContent = text;
   } else {
     throw new Error('Empty response from Anthropic API');
+  }
+}
+
+async function runAutoDetect(){
+  const q = L[lang];
+  const statusEl = $('autodetect-status');
+  const description = ($('autodetect-input')?.value || '').trim();
+  autoDetectText = description;
+
+  const provider = localStorage.getItem('nc_api_provider');
+  const apiKey = localStorage.getItem('nc_api_key');
+  const cfAccountId = localStorage.getItem('nc_cf_account_id');
+  const modelId = localStorage.getItem('nc_api_model');
+
+  const hasKey = apiKey && apiKey.trim().length > 0;
+  if (!hasKey) {
+    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectNotConfigured)}</span><br/><br/><button class="secondary" id="btnAutoDetectSettings" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔑 ${esc(q.apiSettings)}</button>`;
+    $('btnAutoDetectSettings').onclick = showModal;
+    return;
+  }
+
+  if (!description) return;
+
+  const btn = $('btnAnalyze');
+  if (btn) btn.disabled = true;
+  statusEl.textContent = q.autodetectAnalyzing;
+
+  try {
+    const response = await fetch(`${WORKER_URL}/api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, apiKey, modelId, description, cfAccountId })
+    });
+
+    const json = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const detail = json?.raw ? `${json.error || ('HTTP ' + response.status)} — raw model output: ${json.raw}` : (json?.error || `HTTP ${response.status}`);
+      throw new Error(detail);
+    }
+    if (!json || !json.type) {
+      throw new Error('Empty or invalid response from analyzer.');
+    }
+
+    active = json.type;
+    data[active] = Object.assign({}, data[active], json.fields || {});
+    autoDetectQuestions = Array.isArray(json.clarifying_questions) ? json.clarifying_questions : [];
+    autoDetectQuestionsFor = active;
+    mode = 'express';
+    $('btnExpress').classList.add('on');
+    $('btnExpert').classList.remove('on');
+    $('btnAutoDetect').classList.remove('on');
+    render();
+  } catch (err) {
+    console.error(err);
+    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectErrorPrefix)}${esc(err.message)}</span><br/><br/><button class="secondary" id="btnAutoDetectRetry" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔄 ${esc(q.autodetectAnalyze)}</button>`;
+    $('btnAutoDetectRetry').onclick = runAutoDetect;
+  } finally {
+    const retryBtn = $('btnAnalyze');
+    if (retryBtn) retryBtn.disabled = false;
   }
 }
 
