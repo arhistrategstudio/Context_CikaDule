@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NEON//CONTEXT — By CikaDule</title>
+<link rel="icon" type="image/png" href="orao.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -272,6 +273,27 @@ aside {
   color: var(--text-main);
   border-color: var(--primary);
   box-shadow: inset 3px 0 0 var(--accent), 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.type.type-ai {
+  border-color: var(--accent);
+}
+
+.type.type-ai b {
+  color: var(--accent);
+}
+
+.type.type-ai.on {
+  background: rgba(236, 72, 153, 0.08);
+  color: var(--text-main);
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent), 0 4px 12px rgba(236, 72, 153, 0.1);
+}
+
+.type-divider {
+  border: none;
+  border-top: 1px solid var(--panel-border);
+  margin: 4px 0 8px;
 }
 
 h1 {
@@ -871,7 +893,6 @@ select option {
           <div class="mode-toggle-buttons">
             <button class="mode-btn on" id="btnExpress">Express</button>
             <button class="mode-btn" id="btnExpert">Learn</button>
-            <button class="mode-btn" id="btnAutoDetect">✨ AI AUTO-DETECT</button>
           </div>
         </div>
         <div class="compact-toggle-container">
@@ -1013,7 +1034,9 @@ const L={
     connecting:'Connecting to API...',
     receiving:'Receiving response...',
     errorOccurred:'Error: ',
-    autodetect:'✨ AI AUTO-DETECT',
+    autodetectSidebarLabel:'AI Auto-Detect',
+    autodetectSidebarDesc:'Describe your task — AI picks the right template and fills it in',
+    autodetectPanelIntro:'Describe your task in your own words — don’t worry about formatting. The AI will recognize what kind of task this is, pick the matching template from the list, and fill in the relevant fields. If something important is missing, it will ask you up to 3 follow-up questions before you continue.',
     autodetectPlaceholder:'Describe your task in plain language...',
     autodetectAnalyze:'Analyze',
     autodetectAnalyzing:'⚡ ANALYZING...',
@@ -1055,7 +1078,9 @@ const L={
     connecting:'Povezujem se sa API-jem...',
     receiving:'Primam odgovor...',
     errorOccurred:'Greška: ',
-    autodetect:'✨ AI AUTO-DETEKCIJA',
+    autodetectSidebarLabel:'AI Auto-Detekcija',
+    autodetectSidebarDesc:'Opiši zadatak — AI bira odgovarajući šablon i popunjava polja',
+    autodetectPanelIntro:'Opiši svoj zadatak svojim rečima — bez brige oko formata. AI će prepoznati o kojoj vrsti zadatka je reč, izabrati odgovarajući šablon sa liste i popuniti relevantna polja. Ako nešto važno nedostaje, postaviće ti do 3 dodatna pitanja pre nego što nastaviš.',
     autodetectPlaceholder:'Opišite zadatak jednostavnim jezikom...',
     autodetectAnalyze:'Analiziraj',
     autodetectAnalyzing:'⚡ ANALIZIRAM...',
@@ -1395,19 +1420,34 @@ function wrap(key, content) {
   return `<span class="prompt-segment" data-segment="${key}">${esc(content)}</span>`;
 }
 
-function renderTypes(){const el=$('types');el.innerHTML=Object.entries(specs).map(([k,s])=>'<button class="type '+(k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');el.querySelectorAll('.type').forEach(b=>b.onclick=()=>{
-  active=b.dataset.type;
-  if (mode === 'autodetect') {
-    mode = 'express';
-    autoDetectQuestions = [];
-    autoDetectQuestionsFor = null;
-    $('btnExpress').classList.add('on');
-    $('btnExpert').classList.remove('on');
-    $('btnAutoDetect').classList.remove('on');
-  }
-  setActiveTab('prompt');
-  render();
-})}
+function renderTypes(){
+  const el=$('types');
+  const q=L[lang];
+  const autoBtn='<button class="type type-ai '+(mode==='autodetect'?'on':'')+'" id="typeAutoDetect"><b>✨</b><div><strong>'+esc(q.autodetectSidebarLabel)+'</strong><span>'+esc(q.autodetectSidebarDesc)+'</span></div></button>';
+  const divider='<hr class="type-divider">';
+  const typeButtons=Object.entries(specs).map(([k,s])=>'<button class="type '+(mode!=='autodetect'&&k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');
+
+  el.innerHTML=autoBtn+divider+typeButtons;
+
+  $('typeAutoDetect').onclick=()=>{
+    mode='autodetect';
+    autoDetectQuestions=[];
+    autoDetectQuestionsFor=null;
+    setActiveTab('prompt');
+    render();
+  };
+
+  el.querySelectorAll('.type[data-type]').forEach(b=>b.onclick=()=>{
+    active=b.dataset.type;
+    if (mode === 'autodetect') {
+      mode = 'express';
+      autoDetectQuestions = [];
+      autoDetectQuestionsFor = null;
+    }
+    setActiveTab('prompt');
+    render();
+  });
+}
 
 function input([key,kind,def]){
   let control;
@@ -1433,10 +1473,11 @@ function input([key,kind,def]){
 
 function renderAutoDetect(){
   const q=L[lang];
-  $('formTitle').textContent=q.autodetect.replace('✨','').trim();
+  $('formTitle').textContent=q.autodetectSidebarLabel;
   $('formIntro').textContent='';
 
   $('fields').innerHTML=
+    '<div class="full"><p class="intro" style="margin:0 0 20px;">'+esc(q.autodetectPanelIntro)+'</p></div>'+
     '<div class="full"><textarea id="autodetect-input" placeholder="'+esc(q.autodetectPlaceholder)+'">'+esc(autoDetectText)+'</textarea></div>'+
     '<div id="autodetect-status" style="margin-top:10px;"></div>'+
     '<div style="margin-top:12px;"><button class="primary" type="button" id="btnAnalyze">'+esc(q.autodetectAnalyze)+'</button></div>';
@@ -1680,7 +1721,6 @@ function setLang(l){
   $('modeToggleLabel').textContent = q.modeToggleLabel;
   $('btnExpress').textContent = q.express;
   $('btnExpert').textContent = q.expert;
-  $('btnAutoDetect').textContent = q.autodetect;
   $('btnCompact').textContent = q.compactLabel;
   
   // Novi API elementi
@@ -1705,8 +1745,8 @@ $('btnExpress').onclick = () => {
   mode = 'express';
   $('btnExpress').classList.add('on');
   $('btnExpert').classList.remove('on');
-  $('btnAutoDetect').classList.remove('on');
   setActiveTab('prompt');
+  renderTypes();
   renderFields();
   build();
 };
@@ -1714,19 +1754,8 @@ $('btnExpert').onclick = () => {
   mode = 'expert';
   $('btnExpert').classList.add('on');
   $('btnExpress').classList.remove('on');
-  $('btnAutoDetect').classList.remove('on');
   setActiveTab('prompt');
-  renderFields();
-  build();
-};
-$('btnAutoDetect').onclick = () => {
-  mode = 'autodetect';
-  autoDetectQuestions = [];
-  autoDetectQuestionsFor = null;
-  $('btnAutoDetect').classList.add('on');
-  $('btnExpress').classList.remove('on');
-  $('btnExpert').classList.remove('on');
-  setActiveTab('prompt');
+  renderTypes();
   renderFields();
   build();
 };
@@ -2158,7 +2187,6 @@ async function runAutoDetect(){
     mode = 'express';
     $('btnExpress').classList.add('on');
     $('btnExpert').classList.remove('on');
-    $('btnAutoDetect').classList.remove('on');
     render();
   } catch (err) {
     console.error(err);
