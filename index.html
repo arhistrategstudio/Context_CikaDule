@@ -1012,6 +1012,8 @@ const L={
     copied:'Prompt copied.',
     downloaded:'File downloaded.',
     run:'RUN IN MODEL',
+    decompileRun:'⚙ RUN DECOMPILER',
+    decompileNoInput:'Paste the original prompt first.',
     modeToggleLabel:'MODE:',
     express:'Express',
     expert:'Learn',
@@ -1056,6 +1058,8 @@ const L={
     copied:'Prompt je kopiran.',
     downloaded:'Fajl je preuzet.',
     run:'POKRENI U MODELU',
+    decompileRun:'⚙ POKRENI DEKOMPAJLER',
+    decompileNoInput:'Prvo nalepi originalni prompt.',
     modeToggleLabel:'REŽIM:',
     express:'Brzi',
     expert:'Edukativni',
@@ -1502,8 +1506,13 @@ function renderFields(){
     questionsHtml='<div class="full"><div style="margin-bottom:12px; padding:10px; border:1px solid var(--panel-border); border-radius:8px;"><strong>'+esc(L[lang].autodetectQuestionsTitle)+'</strong><ul style="margin:6px 0 0 18px; padding:0;">'+autoDetectQuestions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></div>';
   }
 
-  $('fields').innerHTML=questionsHtml+visibleFields.map(input).join('');
-  
+  let decompileBtnHtml='';
+  if (active === 'decompiler') {
+    decompileBtnHtml='<div class="full" style="margin-top:4px;"><button class="primary" type="button" id="btnDecompile">'+esc(L[lang].decompileRun)+'</button><span id="decompile-status" style="margin-left:10px;"></span></div>';
+  }
+
+  $('fields').innerHTML=questionsHtml+visibleFields.map(input).join('')+decompileBtnHtml;
+
   $('fields').querySelectorAll('input,textarea,select').forEach(el=>{
     const key=el.id.slice(2);
     el.addEventListener('input',()=>{
@@ -1522,6 +1531,24 @@ function renderFields(){
       document.querySelectorAll('.prompt-segment').forEach(s => s.classList.remove('active-highlight'));
     });
   });
+
+  if (active === 'decompiler') {
+    $('btnDecompile').onclick = async () => {
+      const statusEl = $('decompile-status');
+      const btn = $('btnDecompile');
+      if (!val('original')) {
+        statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(L[lang].decompileNoInput)}</span>`;
+        return;
+      }
+      statusEl.textContent = '';
+      btn.disabled = true;
+      try {
+        await runInModel();
+      } finally {
+        btn.disabled = false;
+      }
+    };
+  }
 }
 
 function val(k){
@@ -1889,32 +1916,32 @@ function updateRunButtonState() {
   }
 }
 
-$('run').onclick = async () => {
+async function runInModel() {
   const provider = localStorage.getItem('nc_api_provider');
   const apiKey = localStorage.getItem('nc_api_key');
   const cfAccountId = localStorage.getItem('nc_cf_account_id');
   const customUrl = localStorage.getItem('nc_api_url');
   const modelId = localStorage.getItem('nc_api_model');
-  
+
   const promptText = $('output').innerText || $('output').textContent;
-  
+
   const hasKey = apiKey && apiKey.trim().length > 0;
   const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
   const isCustomOrLocal = provider === 'custom';
-  
+
   if (!hasKey && !isCfConfigured && !isCustomOrLocal) {
     runExternal(promptText);
     return;
   }
-  
+
   setActiveTab('response');
   const responseTextEl = $('response-output-text');
   const responseLoader = $('responseLoader');
-  
+
   responseTextEl.textContent = "";
   responseLoader.style.display = "flex";
   $('responseStatusText').textContent = L[lang].connecting;
-  
+
   try {
     if (provider === 'cloudflare') {
       await callCloudflare(cfAccountId, apiKey, modelId, promptText, responseTextEl);
@@ -1932,7 +1959,8 @@ $('run').onclick = async () => {
   } finally {
     responseLoader.style.display = "none";
   }
-};
+}
+$('run').onclick = runInModel;
 
 function runExternal(promptText) {
   const m = val('model') || 'gpt';
