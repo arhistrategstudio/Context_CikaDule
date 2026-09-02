@@ -1293,6 +1293,31 @@ workflow:{icon:'⇄',name:['Workflow automation','Automatizacija'],desc:['Zapier
 decompiler:{icon:'◇',name:['Prompt decompiler','Prompt dekompajler'],desc:['Break down, adapt, simplify','Razloži, prilagodi, pojednostavi'],fields:[['model','select','gpt'],['operation','select','Break down'],['original','textarea',''],['task','textarea',''],['format','select','Markdown']]}
 };
 const models={gpt:'ChatGPT / GPT-4o',reasoning:'OpenAI o1 / o3',claude:'Claude 4.x',gemini:'Gemini 2.x / 3 Pro',qwen:'Qwen 2.5 Instruct',qwenThinking:'Qwen3 Thinking',deepseek:'DeepSeek-R1',ollama:'Ollama',local:'Llama / Mistral',claudeCode:'Claude Code',cursor:'Cursor / Windsurf',copilot:'GitHub Copilot',bolt:'Bolt / v0 / Lovable',devin:'Devin / SWE-agent',perplexity:'Perplexity / SearchGPT',midjourney:'Midjourney',dalle:'DALL-E 3',stable:'Stable Diffusion',comfy:'ComfyUI',sora:'Sora / Runway / Kling',voice:'ElevenLabs / Murf',zapier:'Zapier / Make / n8n'};
+/* ============================================================
+   MODEL-AWARE MAPPING — provider family classification.
+   We map per-model-family (structural) behavior, not per-model-version.
+   Tokenizer, system-role handling, and structural convention differ by
+   family; wording nuances between versions of the same family (gpt-5.2
+   vs gpt-5.5, Opus vs Sonnet) do not, so we do not branch on those.
+   ============================================================ */
+const FAMILY_MAP={
+  // OpenAI family — dedicated system role, Markdown-first, needs explicit
+  // "format in Markdown" instruction (GPT-5 gen. doesn't auto-format).
+  gpt:'openai', reasoning:'openai', copilot:'openai', dalle:'openai', sora:'openai', perplexity:'openai',
+  // Anthropic family — dedicated `system` param, responds well to XML
+  // tags for multi-section prompts.
+  claude:'anthropic', claudeCode:'anthropic',
+  // Google family — dedicated `system_instruction`, XML or Markdown
+  // (never mixed), prefers concise/direct phrasing.
+  gemini:'google',
+  // Local/OSS family (and anything without a guaranteed chat template or
+  // a single fixed backend model) — most conservative/explicit template,
+  // role/persona folded into the user block rather than a system field.
+  qwen:'local', qwenThinking:'local', deepseek:'local', ollama:'local', local:'local',
+  cursor:'local', midjourney:'local', stable:'local', comfy:'local', voice:'local',
+  zapier:'local', bolt:'local', devin:'local'
+};
+function familyOf(m){ return FAMILY_MAP[m] || 'local'; }
 const selects={model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
 
 const defaultEndpoints = {
@@ -1329,27 +1354,36 @@ let tokenizerStatus = 'loading'; // 'loading' | 'ready' | 'fallback'
   build();
 })();
 
-function heuristicTokenCount(text) {
+function heuristicTokenCount(text, family) {
   if (!text) return 0;
   const chars = text.length;
   const words = text.trim().split(/\s+/).filter(Boolean).length;
-  // Average of a char-based estimate (~4 chars/token for English)
-  // and a word-based estimate (~1.3 tokens/word). Blending both
-  // keeps the estimate reasonable across English and Serbian text.
-  const estimate = (chars / 4 + words * 1.3) / 2;
+  // Different tokenizer families pack different amounts of text per
+  // token for the same string (o200k_base ~= 30% fewer tokens than
+  // cl100k for the same English text than Anthropic/Google/local
+  // tokenizers do). We can't offline-estimate every family's real
+  // tokenizer, so we use two buckets: an OpenAI-leaning ratio and a
+  // generic ~4 chars/token ratio for everyone else, always labeled
+  // as an estimate in the badge.
+  const charsPerToken = family === 'openai' ? 4.5 : 4;
+  const estimate = (chars / charsPerToken + words * 1.3) / 2;
   return Math.max(text.trim() ? 1 : 0, Math.round(estimate));
 }
 
-function countTokens(text) {
+function countTokens(text, family) {
   if (!text) return 0;
-  if (tokenizerStatus === 'ready' && realTokenizer) {
+  // The real tokenizer we load is cl100k/o200k-family (tiktoken-based),
+  // so it's only meaningfully accurate for the OpenAI family. For
+  // Anthropic/Google/Local we always use the labeled heuristic rather
+  // than reporting a false-precision OpenAI-shaped count.
+  if (family === 'openai' && tokenizerStatus === 'ready' && realTokenizer) {
     try {
       return realTokenizer(text);
     } catch (e) {
-      return heuristicTokenCount(text);
+      return heuristicTokenCount(text, family);
     }
   }
-  return heuristicTokenCount(text);
+  return heuristicTokenCount(text, family);
 }
 
 /* ============================================================
@@ -1519,7 +1553,7 @@ function renderFields(){
       data[active]??={};
       data[active][key]=el.value;
       const ftEl = $('ft-'+key);
-      if(ftEl) ftEl.textContent = countTokens(el.value) + ' tok';
+      if(ftEl) ftEl.textContent = countTokens(el.value, familyOf(val('model')||'gpt')) + ' tok';
       build();
     });
     el.addEventListener('focus', () => {
@@ -1570,6 +1604,96 @@ const row=(k,n=k)=>val(k)?n+': '+val(k):'';
 function examples(){return val('examples')?'<examples>\n'+val('examples').split('\n').filter(Boolean).map((x,i)=>'  <example id="'+(i+1)+'">'+x+'</example>').join('\n')+'\n</examples>':''}
 
 function modelRule(m){return {gpt:'Use a strong role, numbered instructions, numeric limits, and exact output format. Skip preamble. No caveats. Answer directly.',reasoning:'Use a short direct instruction. Solve internally and output only the final answer. Do not show reasoning.',claude:'Use the tagged sections faithfully. Keep solutions minimal. Only make changes directly requested.',gemini:'Base the response only on supplied context. Cite only sources you are certain of. Mark uncertainty as [uncertain].',qwen:'Use a clear role and explicit output format. Keep the prompt focused and state output language.',qwenThinking:'Use a short direct instruction. Reason internally and output only the final answer.',deepseek:'Use a short direct instruction. Output only the final answer, without reasoning or think tags.',ollama:'Use a simple flat prompt. The selected local model must be specified before use.',local:'Use a short flat prompt with a clear role. Avoid deep nesting and complex multi-step instructions.',claudeCode:'Follow the agent scope, forbidden actions, stop conditions, and checkpoints exactly.',cursor:'Edit only the stated file and component. Preserve all listed contracts. Stop when Done When is met.',copilot:'Write the requested function contract, types, edge cases, and forbidden behavior as a focused instruction.',bolt:'Build only the named deliverable. Do not add authentication, dark mode, or unrequested features.',devin:'Respect explicit starting state, target state, forbidden actions, and stop conditions.',perplexity:'Use the requested research mode. Report only what verified results support and cite every factual claim.',midjourney:'Return comma-separated visual descriptors. Subject first; style, mood, lighting, composition next; parameters last.',dalle:'Use a clear prose image description. Describe foreground, midground, background; exclude text unless requested.',stable:'Use weighted prompt syntax when useful and always include a separate negative prompt.',comfy:'Return separate POSITIVE PROMPT and NEGATIVE PROMPT blocks, plus checkpoint and generation settings.',sora:'Specify subject, camera movement, duration, mood, and cut style.',voice:'Specify emotion, pacing, emphasis, pauses, and speech rate.',zapier:'Return numbered trigger-to-action steps and explicit field mapping.'}[m]||''}
+
+/* ============================================================
+   FAMILY-AWARE PROMPT BUILDERS
+   Same "Active Workspace" field data goes in, a structurally different
+   prompt comes out, per provider family. Each function returns an array
+   of wrap()-produced segments (unjoined) so buildRaw() can still splice
+   in per-template-type extras (e.g. the analysis/research notes) and so
+   the existing focus-highlight-on-field behavior keeps working per field.
+   ============================================================ */
+
+// Anthropic — dedicated `system` param (handled at call time, see
+// runInModel/callAnthropic), XML tags for 3+ distinct sections, plain
+// language for simple prompts. Positive, direct instructions preferred
+// over lists of things to avoid.
+function buildAnthropicPrompt(f){
+  const sectionCount=['context','audience','steps','tone','constraints','sources','success','format','length']
+    .filter(k=>f[k]).length;
+  const useXml=sectionCount>=2; // + role/task always present => 3+ total sections
+  if(!useXml){
+    return [
+      wrap('role', row('role','Role')),
+      wrap('context', row('context','Context')),
+      wrap('task', 'Task: '+f.task),
+      wrap('constraints', row('constraints','Constraints')),
+      wrap('format', f.format?('Output format: '+f.format):''),
+      wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
+    ];
+  }
+  const ctxLines=[f.context, f.audience?('Audience: '+f.audience):''].filter(Boolean).join('\n');
+  const consLines=[f.constraints, f.tone?('Tone: '+f.tone):'', f.format?('Output format: '+f.format):'', f.length?('Maximum length: '+f.length):''].filter(Boolean).join('\n');
+  return [
+    wrap('role', f.role?('<role>\n'+f.role+'\n</role>'):''),
+    wrap('context', ctxLines?('<context>\n'+ctxLines+'\n</context>'):''),
+    wrap('task', '<task>\n'+f.task+(f.steps?('\n\nSteps:\n'+f.steps):'')+'\n</task>'),
+    wrap('constraints', consLines?('<constraints>\n'+consLines+'\n</constraints>'):''),
+    wrap('sources', f.sources?('<sources>\n'+f.sources+'\n</sources>'):''),
+    wrap('success', f.success?('<success_criteria>\n'+f.success+'\n</success_criteria>'):''),
+    wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
+  ];
+}
+
+// Google (Gemini) — dedicated `system_instruction`, XML OR Markdown but
+// never both in the same prompt, concise/direct over persuasive/verbose.
+function buildGoogleXPrompt(f){
+  return [
+    wrap('role', f.role?('## Role\n'+f.role):''),
+    wrap('context', (f.context||f.audience)?('## Context\n'+[f.context, f.audience?('Audience: '+f.audience):''].filter(Boolean).join('\n')):''),
+    wrap('task', '## Task\n'+f.task+(f.steps?('\n\n'+f.steps):'')),
+    wrap('constraints', (f.constraints||f.tone||f.format||f.length)?('## Constraints\n'+[f.constraints, f.tone?('Tone: '+f.tone):'', f.format?('Output format: '+f.format):'', f.length?('Max length: '+f.length):''].filter(Boolean).join('\n')):''),
+    wrap('sources', f.sources?('## Sources\n'+f.sources+'\nUse only the sources above. Mark uncertain claims as [uncertain].'):''),
+    wrap('success', f.success?('## Success Criteria\n'+f.success):''),
+    wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
+  ];
+}
+
+// OpenAI — dedicated system role, Markdown-first (headers/bullets), but
+// GPT-5-gen models don't auto-format unless told to, so we say so.
+function buildOpenAIPrompt(f){
+  const stepsBlock=f.steps?('\n\n**Steps:**\n'+f.steps.split('\n').filter(Boolean).map(s=>'- '+s).join('\n')):'';
+  const constraintLines=[f.constraints, f.tone?('Tone: '+f.tone):''].filter(Boolean);
+  const outLines=[f.answerLang?('Language: '+f.answerLang):'', f.format?('Format: '+f.format):'', f.length?('Max length: '+f.length):''].filter(Boolean);
+  return [
+    wrap('role', f.role?('**Role:** '+f.role):''),
+    wrap('context', f.context?('## Context\n'+f.context+(f.audience?('\n\nAudience: '+f.audience):'')):''),
+    wrap('task', '## Task\n'+f.task+stepsBlock),
+    wrap('constraints', constraintLines.length?('## Constraints\n'+constraintLines.map(s=>'- '+s).join('\n')):''),
+    wrap('sources', f.sources?('## Sources\n'+f.sources):''),
+    wrap('success', f.success?('## Success Criteria\n'+f.success):''),
+    wrap('format', outLines.length?('## Output\n'+outLines.map(s=>'- '+s).join('\n')+'\n\nFormat the response in Markdown.'):'')
+  ];
+}
+
+// Local/OSS — no guaranteed chat template or system-role support, so we
+// never rely on a system field: role/persona is folded into the user
+// block as a plain labeled line, flat structure, no nesting assumptions.
+function buildLocalPrompt(f){
+  return [
+    wrap('role', row('role','Role')),
+    wrap('context', row('context','Context')),
+    wrap('task', 'Task: '+f.task),
+    wrap('steps', f.steps?('Steps: '+f.steps):''),
+    wrap('constraints', row('constraints','Constraints')),
+    wrap('tone', row('tone','Tone')),
+    wrap('sources', row('sources','Sources')),
+    wrap('success', row('success','Success criteria')),
+    wrap('answer', f.answerLang?('Output language: '+f.answerLang):''),
+    wrap('format', f.format?('Output format: '+f.format):''),
+    wrap('length', f.length?('Maximum length: '+f.length):'')
+  ];
+}
 
 function buildRaw(){
   let m=val('model')||'gpt',task=val('task')||val('desired')||val('subject')||'[Describe the task]';
@@ -1660,21 +1784,20 @@ function buildRaw(){
       wrap('format', val('format') ? 'Output format: '+val('format') : '')
     ].filter(Boolean);
   } else {
-    a=[
-      wrap('role', row('role','Role')),
-      wrap('context', row('context','Context')),
-      wrap('audience', row('audience','Audience')),
-      wrap('task', 'Task: '+task),
-      wrap('steps', row('steps','Steps')),
-      wrap('tone', row('tone','Tone')),
-      wrap('constraints', row('constraints','Constraints')),
-      wrap('sources', row('sources','Sources')),
-      wrap('success', row('success','Success criteria')),
-      wrap('answer', 'Output language: '+val('answer')),
-      wrap('format', 'Output format: '+val('format')),
-      wrap('length', 'Maximum length: '+val('length')),
-      wrap('examples', examples())
-    ].filter(Boolean);
+    // Generic "Active Workspace" templates (general/business/project/
+    // creative/analysis/fewshot/research) — same field data, structurally
+    // different output depending on the target model's family. This is
+    // the actual "model-aware" feature: everything above this branch is
+    // a fixed, per-task-type template and is intentionally left alone.
+    const genericFields={
+      role: val('role'), context: val('context'), audience: val('audience'),
+      task, steps: val('steps'), tone: val('tone'), constraints: val('constraints'),
+      sources: val('sources'), success: val('success'), answerLang: val('answer'),
+      format: val('format'), length: val('length')
+    };
+    const builders={ anthropic: buildAnthropicPrompt, google: buildGoogleXPrompt, openai: buildOpenAIPrompt, local: buildLocalPrompt };
+    a=(builders[familyOf(m)]||buildLocalPrompt)(genericFields);
+    a.push(wrap('examples', examples()));
   }
   
   if(active==='analysis'&&!['reasoning','qwenThinking','deepseek'].includes(m)) {
@@ -1684,20 +1807,16 @@ function buildRaw(){
     a.push(wrap('constraints', 'Use only verified information from the approved sources. If a claim is uncertain, write [uncertain].'));
   }
   
-  let out;
-  if(m==='claude'&&!['image','comfy'].includes(active)) {
-    out=wrap('model', '<role>'+esc(val('role')||'Expert assistant')+'</role>\n<task>'+esc(task)+'</task>\n<context>'+esc(val('context'))+'</context>\n<constraints>'+esc(val('constraints')+'\nOutput format: '+val('format')+'\nMaximum length: '+val('length'))+'</constraints>\n<output_format>'+esc(val('success')||val('format'))+'</output_format>\n'+examples());
-  } else {
-    out=[wrap('model', modelRule(m)), '', ...a].filter(Boolean).join('\n\n');
-  }
+  const out=[wrap('model', modelRule(m)), '', ...a].filter(Boolean).join('\n\n');
   return { out, m };
 }
 
 function build(){
   const { out: rawOut, m } = buildRaw();
+  const fam = familyOf(m);
 
   let finalOut = rawOut;
-  let rawTokens = countTokens(rawOut.replace(/<[^>]+>/g,''));
+  let rawTokens = countTokens(rawOut.replace(/<[^>]+>/g,''), fam);
   let finalTokens = rawTokens;
   let savingsPct = 0;
 
@@ -1707,18 +1826,21 @@ function build(){
     const plain = rawOut.replace(/<[^>]+>/g,'');
     const compacted = collapseBlankLines(compactText(plain));
     finalOut = esc(compacted).replace(/\n/g,'\n');
-    finalTokens = countTokens(compacted);
+    finalTokens = countTokens(compacted, fam);
     savingsPct = rawTokens > 0 ? Math.round((1 - finalTokens / rawTokens) * 100) : 0;
   }
 
   $('output').innerHTML = finalOut;
   $('modelBadge').textContent = models[m] || m;
 
-  const tokenLabel = tokenizerStatus === 'ready' ? '' : ' (est.)';
+  const usingRealTokenizer = fam === 'openai' && tokenizerStatus === 'ready';
+  const tokenLabel = usingRealTokenizer ? '' : ' (est.)';
   $('tokenBadge').textContent = finalTokens + ' tok' + tokenLabel;
-  $('tokenBadge').title = tokenizerStatus === 'ready'
+  $('tokenBadge').title = usingRealTokenizer
     ? 'Counted with the real cl100k GPT tokenizer.'
-    : 'Approximate estimate (offline heuristic) — tokenizer library did not load.';
+    : fam === 'local'
+      ? 'Approximate estimate — local/OSS models each use their own tokenizer, so the real count depends on the loaded model.'
+      : `Approximate estimate — ${fam === 'anthropic' ? 'Anthropic' : fam === 'google' ? 'Google' : 'this'} uses its own tokenizer (not tiktoken-compatible); this is a ~4 chars/token approximation, not a live count.`;
 
   const savingsEl = $('savingsBadge');
   if (compact && savingsPct > 0) {
@@ -1925,6 +2047,15 @@ async function runInModel() {
 
   const promptText = $('output').innerText || $('output').textContent;
 
+  // Role/persona content routes to each provider's real system field
+  // (OpenAI system role, Anthropic `system` param, Google
+  // `system_instruction`) instead of only living inline in the user
+  // prompt. Local/OSS (Cloudflare Workers AI + Custom/Ollama/LM Studio)
+  // has no guaranteed chat template, so it deliberately keeps role
+  // folded into the user block only — matching what's already visible
+  // in the prompt preview above.
+  const systemText = val('role');
+
   const hasKey = apiKey && apiKey.trim().length > 0;
   const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
   const isCustomOrLocal = provider === 'custom';
@@ -1944,13 +2075,22 @@ async function runInModel() {
 
   try {
     if (provider === 'cloudflare') {
+      // Local/OSS family — no system field.
       await callCloudflare(cfAccountId, apiKey, modelId, promptText, responseTextEl);
     } else if (provider === 'gemini') {
-      await callGemini(apiKey, modelId, customUrl, promptText, responseTextEl);
+      await callGemini(apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
     } else if (provider === 'anthropic') {
-      await callAnthropic(apiKey, modelId, customUrl, promptText, responseTextEl);
-    } else {
+      await callAnthropic(apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
+    } else if (provider === 'custom') {
+      // Local/OSS family (Ollama/LM Studio) — chat template may not
+      // define a system role, so don't rely on one; role already
+      // lives in promptText.
       await callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, responseTextEl);
+    } else {
+      // openai + openrouter (pass-through, OpenAI-compatible endpoint
+      // regardless of the underlying model picked) — safe to send a
+      // real system message.
+      await callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
     }
   } catch (err) {
     console.error(err);
@@ -1968,7 +2108,11 @@ function runExternal(promptText) {
   window.open(getUrl(promptText), '_blank');
 }
 
-async function callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, outputTextEl) {
+async function callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, outputTextEl, systemText) {
+  const messages = [];
+  if (systemText) messages.push({ role: 'system', content: systemText });
+  messages.push({ role: 'user', content: promptText });
+
   const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1979,7 +2123,7 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
       url: customUrl,
       payload: {
         model: modelId || (provider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash'),
-        messages: [{ role: 'user', content: promptText }],
+        messages,
         stream: true
       }
     })
@@ -2093,8 +2237,17 @@ async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTe
   }
 }
 
-async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl) {
+async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl, systemText) {
   const model = modelId || 'gemini-2.5-flash';
+
+  const payload = {
+    contents: [{
+      parts: [{ text: promptText }]
+    }]
+  };
+  if (systemText) {
+    payload.system_instruction = { parts: [{ text: systemText }] };
+  }
 
   const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
@@ -2104,11 +2257,7 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl) 
       apiKey,
       modelId: model,
       url: customUrl,
-      payload: {
-        contents: [{
-          parts: [{ text: promptText }]
-        }]
-      }
+      payload
     })
   });
 
@@ -2130,8 +2279,17 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl) 
   }
 }
 
-async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextEl) {
+async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextEl, systemText) {
   const model = modelId || 'claude-3-5-sonnet-latest';
+
+  const payload = {
+    model: model,
+    max_tokens: 4000,
+    messages: [{ role: 'user', content: promptText }]
+  };
+  // Anthropic's Messages API takes `system` as a top-level field, not a
+  // role inside the messages array.
+  if (systemText) payload.system = systemText;
 
   const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
@@ -2141,11 +2299,7 @@ async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextE
       apiKey,
       modelId: model,
       url: customUrl,
-      payload: {
-        model: model,
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: promptText }]
-      }
+      payload
     })
   });
 
