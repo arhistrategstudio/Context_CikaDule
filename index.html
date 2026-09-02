@@ -313,7 +313,17 @@ h1 {
 .form {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  align-items: start;
+  gap: 16px 16px;
+}
+
+/* Firefox sizes grid items to their min-content by default (unlike
+   Chrome's more permissive shrinking), so a field with a long Learn-mode
+   tip can force its track wider and visually spill into/over the
+   neighboring field once more than a couple of fields are stacked.
+   min-width:0 lets the item shrink to the track width instead. */
+.form > div {
+  min-width: 0;
 }
 
 .full {
@@ -585,6 +595,8 @@ select option {
   margin-top: 4px;
   opacity: 0.85;
   line-height: 1.35;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .field-tokens {
@@ -594,6 +606,7 @@ select option {
   margin-top: 4px;
   opacity: 0.7;
   text-align: right;
+  overflow-wrap: break-word;
 }
 
 /* Highlight Segments Styles */
@@ -891,13 +904,9 @@ select option {
         <div class="mode-toggle-container">
           <span id="modeToggleLabel">Mode:</span>
           <div class="mode-toggle-buttons">
-            <button class="mode-btn on" id="btnExpress">Express</button>
-            <button class="mode-btn" id="btnExpert">Learn</button>
+            <button class="mode-btn on" id="btnExpress" title="Show only the essential fields for a fast prompt">Quick</button>
+            <button class="mode-btn" id="btnExpert" title="Show every field with inline explanations of what each one does">Guided</button>
           </div>
-        </div>
-        <div class="compact-toggle-container">
-          <span id="compactToggleLabel">⚡</span>
-          <button class="compact-btn" id="btnCompact" title="Mechanically strip filler words and collapse blank lines to reduce token count">COMPACT</button>
         </div>
       </div>
     </div>
@@ -915,10 +924,16 @@ select option {
         <p class="eyebrow" id="previewT">LIVE PROMPT PREVIEW</p>
         <h1 id="previewH">Optimized prompt</h1>
       </div>
-      <div class="badge-row">
-        <span class="badge" id="modelBadge"></span>
-        <span class="badge tokens" id="tokenBadge" title="Estimated token count of the full prompt below">≈0 tokens</span>
-        <span class="badge savings" id="savingsBadge" style="display:none"></span>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+        <div class="compact-toggle-container">
+          <span id="compactToggleLabel">⚡</span>
+          <button class="compact-btn" id="btnCompact" title="Mechanically strip filler words and collapse blank lines to reduce token count">COMPACT</button>
+        </div>
+        <div class="badge-row">
+          <span class="badge" id="modelBadge"></span>
+          <span class="badge tokens" id="tokenBadge" title="Estimated token count of the full prompt below">≈0 tokens</span>
+          <span class="badge savings" id="savingsBadge" style="display:none"></span>
+        </div>
       </div>
     </div>
     
@@ -1003,6 +1018,7 @@ const L={
   en:{
     tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',
     clear:'CLEAR ACTIVE FORM',
+    clearConfirm:'Clear all fields in this form? This cannot be undone.',
     type:'Context type / template',
     mode:'ACTIVE WORKSPACE',
     copy:'COPY PROMPT',
@@ -1014,9 +1030,11 @@ const L={
     run:'RUN IN MODEL',
     decompileRun:'⚙ RUN DECOMPILER',
     decompileNoInput:'Paste the original prompt first.',
-    modeToggleLabel:'MODE:',
-    express:'Express',
-    expert:'Learn',
+    modeToggleLabel:'FIELDS:',
+    express:'Quick',
+    expert:'Guided',
+    expressTitle:'Show only the essential fields for a fast prompt',
+    expertTitle:'Show every field with inline explanations of what each one does',
     compactLabel:'COMPACT',
     compactOnNote:'Compact mode: filler words stripped, blank lines collapsed.',
     apiSettings:'API Settings',
@@ -1049,6 +1067,7 @@ const L={
   sr:{
     tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
     clear:'OČISTI AKTIVNI OBRAZAC',
+    clearConfirm:'Obrisati sva polja u ovom obrascu? Ovo se ne može opozvati.',
     type:'Tip konteksta / šablon',
     mode:'AKTIVNI RADNI PROSTOR',
     copy:'KOPIRAJ PROMPT',
@@ -1060,9 +1079,11 @@ const L={
     run:'POKRENI U MODELU',
     decompileRun:'⚙ POKRENI DEKOMPAJLER',
     decompileNoInput:'Prvo nalepi originalni prompt.',
-    modeToggleLabel:'REŽIM:',
-    express:'Brzi',
-    expert:'Edukativni',
+    modeToggleLabel:'POLJA:',
+    express:'Brzo',
+    expert:'Vođeno',
+    expressTitle:'Prikazuje samo osnovna polja za brz prompt',
+    expertTitle:'Prikazuje sva polja uz objašnjenje šta svako od njih radi',
     compactLabel:'SAŽMI',
     compactOnNote:'Compact režim: uklonjene su suvišne reči, prazni redovi su spojeni.',
     apiSettings:'Podešavanja API-ja',
@@ -1870,6 +1891,8 @@ function setLang(l){
   $('modeToggleLabel').textContent = q.modeToggleLabel;
   $('btnExpress').textContent = q.express;
   $('btnExpert').textContent = q.expert;
+  $('btnExpress').title = q.expressTitle;
+  $('btnExpert').title = q.expertTitle;
   $('btnCompact').textContent = q.compactLabel;
   
   // Novi API elementi
@@ -2394,7 +2417,11 @@ $('btnCopyResponse').onclick = async () => {
 
 $('copy').onclick=async()=>{await navigator.clipboard.writeText($('output').innerText || $('output').textContent);$('status').textContent=L[lang].copied};
 $('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('output').innerText || $('output').textContent],{type:'text/plain'}));a.download='optimized-prompt.txt';a.click();$('status').textContent=L[lang].downloaded};
-$('clear').onclick=()=>{data[active]={};$('status').textContent='';setActiveTab('prompt');render()};
+$('clear').onclick=()=>{
+  const hasData = data[active] && Object.values(data[active]).some(v => String(v ?? '').trim() !== '');
+  if (hasData && !confirm(L[lang].clearConfirm)) return;
+  data[active]={};$('status').textContent='';setActiveTab('prompt');render()
+};
 document.querySelectorAll('[data-lang]').forEach(x=>x.onclick=()=>setLang(x.dataset.lang));
 render();
 </script>
