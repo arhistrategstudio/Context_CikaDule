@@ -2,9 +2,11 @@
   "name": "context-cikadule-smoke-tests",
   "version": "1.0.0",
   "description": "Helper scripts and smoke tests for Context_CikaDule",
-  "main": "scripts/smoke-test.js",
   "scripts": {
-    "smoke-test": "node scripts/smoke-test.js"
+    "test": "node scripts/smoke-test.js",
+    "smoke-test": "node scripts/smoke-test.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
   "engines": {
     "node": ">=18"

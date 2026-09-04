@@ -465,11 +465,16 @@ select option {
 
 .badge.tokens {
   border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(99, 102, 241, 0.1);
+  color: #ffffff;
+  background: rgba(99, 102, 241, 0.22);
   font-family: var(--font-mono);
   letter-spacing: 0;
   text-transform: none;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 6px;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
 }
 
 .badge.savings {
@@ -479,6 +484,90 @@ select option {
   font-family: var(--font-mono);
   letter-spacing: 0;
   text-transform: none;
+}
+
+/* Prominent Savings Pill */
+.savings-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(99, 102, 241, 0.22));
+  border: 1px solid var(--accent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.35);
+  animation: pulseSavings 2s infinite ease-in-out;
+}
+@keyframes pulseSavings {
+  0%, 100% { box-shadow: 0 0 8px rgba(236, 72, 153, 0.25); border-color: rgba(236, 72, 153, 0.8); }
+  50% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.6); border-color: #ff77ba; }
+}
+.savings-pct {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 15px;
+  color: #ff77ba;
+  letter-spacing: -0.02em;
+}
+.savings-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+.preview-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+.preview-run {
+  background: linear-gradient(135deg, var(--secondary), var(--secondary-hover));
+  border-color: var(--secondary);
+}
+.preview-run:hover {
+  box-shadow: 0 0 16px var(--secondary-glow);
+}
+
+.response-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.response-empty-icon {
+  font-size: 36px;
+  color: var(--primary);
+  margin-bottom: 12px;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px var(--primary-glow));
+}
+.response-empty-title {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.response-empty-desc {
+  max-width: 360px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.8;
 }
 
 .note {
@@ -600,13 +689,18 @@ select option {
 }
 
 .field-tokens {
-  font-size: 10px;
-  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  color: #93c5fd;
   font-family: var(--font-mono);
-  margin-top: 4px;
-  opacity: 0.7;
+  margin-top: 6px;
   text-align: right;
-  overflow-wrap: break-word;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 2px 8px;
+  width: fit-content;
+  margin-left: auto;
 }
 
 /* Highlight Segments Styles */
@@ -928,6 +1022,10 @@ select option {
         <div class="compact-toggle-container">
           <span id="compactToggleLabel">⚡</span>
           <button class="compact-btn" id="btnCompact" title="Mechanically strip filler words and collapse blank lines to reduce token count">COMPACT</button>
+          <div class="savings-pill" id="savingsPill" style="display:none;" title="Exact percentage of tokens saved by compact mode">
+            <span class="savings-pct" id="savingsPctVal">-0%</span>
+            <span class="savings-text" id="savingsTextVal">SAVED</span>
+          </div>
         </div>
         <div class="badge-row">
           <span class="badge" id="modelBadge"></span>
@@ -937,6 +1035,12 @@ select option {
       </div>
     </div>
     
+    <div class="preview-actions">
+      <button class="primary preview-btn" id="btnCopyPreview">▣ <span id="copyPreviewT">COPY PROMPT</span></button>
+      <button class="primary preview-btn preview-run" id="btnRunPreview">⚡ <span id="runPreviewT">RUN IN MODEL</span></button>
+      <button class="secondary preview-btn" id="btnDownloadPreview">↓ <span id="downloadPreviewT">DOWNLOAD .TXT</span></button>
+    </div>
+
     <div class="preview-tabs-container">
       <div class="preview-tabs">
         <button id="tabPrompt" class="tab-btn on">Prompt</button>
@@ -956,6 +1060,13 @@ select option {
           <div class="loader-dot"></div>
           <div class="loader-dot"></div>
           <span id="responseStatusText">Generating response...</span>
+        </div>
+        <div id="responseEmptyState" class="response-empty-state">
+          <div class="response-empty-icon">⚡</div>
+          <div class="response-empty-title" id="resEmptyTitle">NO MODEL RESPONSE YET</div>
+          <p class="response-empty-desc" id="resEmptyDesc">
+            Click <strong>RUN DIRECTLY</strong> (or <strong>RUN IN MODEL</strong>) to execute this prompt. Live streaming output from the model will appear right here.
+          </p>
         </div>
         <div id="response-output-text"></div>
       </div>
@@ -1062,7 +1173,14 @@ const L={
     autodetectAnalyzing:'⚡ ANALYZING...',
     autodetectNotConfigured:'No API key configured. Add your API key in Settings to use AI Auto-Detect.',
     autodetectQuestionsTitle:'Clarifying questions from the AI:',
-    autodetectErrorPrefix:'Auto-detect failed: '
+    autodetectErrorPrefix:'Auto-detect failed: ',
+    resEmptyTitle:'NO MODEL RESPONSE YET',
+    resEmptyDesc:'Click RUN DIRECTLY (or RUN IN MODEL) to execute this prompt. Live streaming output from the model will appear right here.',
+    savingsPillLabel:'SAVED',
+    copyPreview:'COPY PROMPT',
+    runPreview:'RUN IN MODEL',
+    runDirectPreview:'RUN DIRECTLY',
+    downloadPreview:'DOWNLOAD .TXT'
   },
   sr:{
     tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
@@ -1111,7 +1229,14 @@ const L={
     autodetectAnalyzing:'⚡ ANALIZIRAM...',
     autodetectNotConfigured:'API ključ nije podešen. Dodajte API ključ u Podešavanjima da biste koristili AI Auto-Detekciju.',
     autodetectQuestionsTitle:'Dodatna pitanja od AI-ja:',
-    autodetectErrorPrefix:'Auto-detekcija nije uspela: '
+    autodetectErrorPrefix:'Auto-detekcija nije uspela: ',
+    resEmptyTitle:'NEMA ODGOVORA MODELA JOŠ',
+    resEmptyDesc:'Kliknite na POKRENI DIREKTNO (ili POKRENI U MODELU) da izvršite ovaj prompt. Odgovor modela u realnom vremenu će se pojaviti ovde.',
+    savingsPillLabel:'UŠTEĐENO',
+    copyPreview:'KOPIRAJ PROMPT',
+    runPreview:'POKRENI U MODELU',
+    runDirectPreview:'POKRENI DIREKTNO',
+    downloadPreview:'PREUZMI .TXT'
   }
 };
 const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
@@ -1292,6 +1417,18 @@ const tips = {
   script: {
     en: "The exact script or text content to be read by Voice AI.",
     sr: "Tačan tekst ili scenario koji Glasovni AI treba da izgovori."
+  },
+  emotion: {
+    en: "Defines vocal tone, mood, and feeling (e.g. warm, authoritative, enthusiastic).",
+    sr: "Definiše ton glasa, raspoloženje i emociju (npr. topao, autoritativan, entuzijastičan)."
+  },
+  pacing: {
+    en: "Controls rhythm, pauses, and cadence between sentences or key phrases.",
+    sr: "Kontroliše ritam, pauze i tempo između rečenica ili ključnih fraza."
+  },
+  speechrate: {
+    en: "Sets speech speed multiplier (e.g. 0.9 for deliberate/serious, 1.1 for brisk).",
+    sr: "Podešava brzinu govora (npr. 0.9 za smireniji/ozbiljniji ton, 1.1 za brži govor)."
   }
 };
 const common=[['model','select','gpt'],['answer','select','English'],['task','textarea',''],['role','text',''],['context','textarea',''],['format','select','Markdown'],['length','text','e.g., under 250 words']];
@@ -1344,7 +1481,7 @@ const selects={model:Object.entries(models),answer:[['English','English'],['Serb
 const defaultEndpoints = {
   openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
   cloudflare: { url: '', model: '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b' },
-  gemini: { url: 'https://generativelanguage.googleapis.com/v1beta/models/', model: 'gemini-2.5-flash' },
+  gemini: { url: '', model: 'gemini-2.5-flash' },
   openrouter: { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'google/gemini-2.5-flash' },
   anthropic: { url: 'https://api.anthropic.com/v1/messages', model: 'claude-3-5-sonnet-latest' },
   custom: { url: 'http://localhost:11434/v1/chat/completions', model: 'llama3' }
@@ -1722,7 +1859,6 @@ function buildRaw(){
   if(active==='coding') {
     a=[
       wrap('file', val('file') ? 'File: '+val('file') : ''),
-      wrap('file', 'Function/Component: [specify if applicable]'),
       wrap('current', val('current') ? 'Current Behavior: '+val('current') : ''),
       wrap('desired', val('desired') ? 'Desired Change: '+val('desired') : ''),
       wrap('scope', val('scope') ? 'Scope: '+val('scope') : ''),
@@ -1752,7 +1888,7 @@ function buildRaw(){
       wrap('lighting', val('lighting')),
       wrap('palette', val('palette')),
       wrap('composition', val('composition')),
-      wrap('aspect', '--ar '+val('aspect')),
+      wrap('aspect', val('aspect') ? '--ar '+val('aspect') : ''),
       wrap('negative', val('negative') ? '--no '+val('negative') : '')
     ].filter(Boolean);
   } else if(active==='imageEdit') {
@@ -1864,11 +2000,23 @@ function build(){
       : `Approximate estimate — ${fam === 'anthropic' ? 'Anthropic' : fam === 'google' ? 'Google' : 'this'} uses its own tokenizer (not tiktoken-compatible); this is a ~4 chars/token approximation, not a live count.`;
 
   const savingsEl = $('savingsBadge');
+  const savingsPill = $('savingsPill');
+  const savingsPctVal = $('savingsPctVal');
+  const savingsTextVal = $('savingsTextVal');
+
   if (compact && savingsPct > 0) {
-    savingsEl.style.display = '';
-    savingsEl.textContent = '-' + savingsPct + '% (compact)';
+    if (savingsEl) {
+      savingsEl.style.display = '';
+      savingsEl.textContent = '-' + savingsPct + '% (compact)';
+    }
+    if (savingsPill) {
+      savingsPill.style.display = 'inline-flex';
+      if (savingsPctVal) savingsPctVal.textContent = '-' + savingsPct + '%';
+      if (savingsTextVal) savingsTextVal.textContent = L[lang]?.savingsPillLabel || 'SAVED';
+    }
   } else {
-    savingsEl.style.display = 'none';
+    if (savingsEl) savingsEl.style.display = 'none';
+    if (savingsPill) savingsPill.style.display = 'none';
   }
 
   $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m) + (compact ? ' · ' + L[lang].compactOnNote : '');
@@ -1895,6 +2043,13 @@ function setLang(l){
   $('btnExpert').title = q.expertTitle;
   $('btnCompact').textContent = q.compactLabel;
   
+  // Novi preview dugmići i elementi
+  if ($('copyPreviewT')) $('copyPreviewT').textContent = q.copyPreview || q.copy;
+  if ($('downloadPreviewT')) $('downloadPreviewT').textContent = q.downloadPreview || q.down;
+  if ($('resEmptyTitle')) $('resEmptyTitle').textContent = q.resEmptyTitle;
+  if ($('resEmptyDesc')) $('resEmptyDesc').textContent = q.resEmptyDesc;
+  if ($('savingsTextVal')) $('savingsTextVal').textContent = q.savingsPillLabel || 'SAVED';
+
   // Novi API elementi
   $('apiSettingsT').textContent = q.apiSettings;
   $('modalTitleT').textContent = q.modalTitle;
@@ -1941,6 +2096,7 @@ const modelUrls = {
   gpt: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
   reasoning: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
   claude: () => `https://claude.ai/new`,
+  claudeCode: () => `https://claude.ai/new`,
   gemini: () => `https://gemini.google.com/app`,
   qwen: () => `https://chat.qwenlm.ai/`,
   qwenThinking: () => `https://chat.qwenlm.ai/`,
@@ -1948,7 +2104,11 @@ const modelUrls = {
   perplexity: p => `https://www.perplexity.ai/?q=${encodeURIComponent(p)}`,
   midjourney: () => `https://alpha.midjourney.com/`,
   dalle: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
+  stable: () => `https://civitai.com/`,
   comfy: () => `http://127.0.0.1:8188/`,
+  sora: () => `https://sora.com/`,
+  voice: () => `https://elevenlabs.io/app`,
+  zapier: () => `https://zapier.com/app/editor`,
   ollama: () => `http://localhost:3000/`,
   local: () => `http://localhost:3000/`,
   bolt: () => `https://bolt.new/`,
@@ -2030,6 +2190,18 @@ function setActiveTab(tab) {
     tabPrompt.classList.remove('on');
     outputEl.style.display = 'none';
     responseOutputEl.style.display = 'block';
+
+    const emptyEl = $('responseEmptyState');
+    const textEl = $('response-output-text');
+    const loader = $('responseLoader');
+    const isGenerating = loader && loader.style.display !== 'none';
+    if (emptyEl) {
+      if ((textEl && textEl.textContent.trim().length > 0) || isGenerating) {
+        emptyEl.style.display = 'none';
+      } else {
+        emptyEl.style.display = 'flex';
+      }
+    }
   }
 }
 
@@ -2049,16 +2221,28 @@ function updateRunButtonState() {
   
   const runBtn = $('run');
   const runText = $('runT');
+  const runPreviewBtn = $('btnRunPreview');
+  const runPreviewText = $('runPreviewT');
+
+  const label = isConfigured 
+    ? (lang === 'en' ? 'RUN DIRECTLY' : 'POKRENI DIREKTNO') 
+    : L[lang].run;
+  const bg = isConfigured 
+    ? 'linear-gradient(135deg, var(--primary), var(--primary-hover))' 
+    : 'linear-gradient(135deg, var(--secondary), var(--secondary-hover))';
+  const border = isConfigured ? 'var(--primary)' : 'var(--secondary)';
   
-  if (isConfigured) {
-    runBtn.style.background = 'linear-gradient(135deg, var(--primary), var(--primary-hover))';
-    runBtn.style.borderColor = 'var(--primary)';
-    runText.textContent = lang === 'en' ? 'RUN DIRECTLY' : 'POKRENI DIREKTNO';
-  } else {
-    runBtn.style.background = 'linear-gradient(135deg, var(--secondary), var(--secondary-hover))';
-    runBtn.style.borderColor = 'var(--secondary)';
-    runText.textContent = L[lang].run;
+  if (runBtn) {
+    runBtn.style.background = bg;
+    runBtn.style.borderColor = border;
   }
+  if (runText) runText.textContent = label;
+
+  if (runPreviewBtn) {
+    runPreviewBtn.style.background = bg;
+    runPreviewBtn.style.borderColor = border;
+  }
+  if (runPreviewText) runPreviewText.textContent = label;
 }
 
 async function runInModel() {
@@ -2091,6 +2275,8 @@ async function runInModel() {
   setActiveTab('response');
   const responseTextEl = $('response-output-text');
   const responseLoader = $('responseLoader');
+  const emptyEl = $('responseEmptyState');
+  if (emptyEl) emptyEl.style.display = 'none';
 
   responseTextEl.textContent = "";
   responseLoader.style.display = "flex";
@@ -2121,12 +2307,19 @@ async function runInModel() {
     $('btnErrorFallback').onclick = () => runExternal(promptText);
   } finally {
     responseLoader.style.display = "none";
+    if (emptyEl && (!responseTextEl.textContent || responseTextEl.textContent.trim().length === 0)) {
+      emptyEl.style.display = 'flex';
+    }
   }
 }
 $('run').onclick = runInModel;
 
 function runExternal(promptText) {
   const m = val('model') || 'gpt';
+  if (navigator?.clipboard?.writeText) {
+    navigator.clipboard.writeText(promptText).catch(() => {});
+    $('status').textContent = L[lang].copied;
+  }
   const getUrl = modelUrls[m] || (p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`);
   window.open(getUrl(promptText), '_blank');
 }
@@ -2136,6 +2329,8 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
   if (systemText) messages.push({ role: 'system', content: systemText });
   messages.push({ role: 'user', content: promptText });
 
+  const fallbackModel = provider === 'openai' ? 'gpt-4o-mini' : provider === 'custom' ? 'llama3' : 'google/gemini-2.5-flash';
+
   const response = await fetch(`${WORKER_URL}/api/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2143,9 +2338,9 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
       provider,
       apiKey,
       modelId,
-      url: customUrl,
+      url: customUrl || undefined,
       payload: {
-        model: modelId || (provider === 'openai' ? 'gpt-4o-mini' : 'google/gemini-2.5-flash'),
+        model: modelId || fallbackModel,
         messages,
         stream: true
       }
@@ -2156,8 +2351,11 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
     let errMsg = `HTTP ${response.status}`;
     try {
       const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || JSON.stringify(errJson)}`;
-    } catch(e) {}
+      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
+    } catch(e) {
+      const txt = await response.text().catch(() => '');
+      if (txt) errMsg += `: ${txt}`;
+    }
     throw new Error(errMsg);
   }
 
@@ -2223,8 +2421,11 @@ async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTe
     let errMsg = `HTTP ${response.status}`;
     try {
       const errJson = await response.json();
-      errMsg += `: ${JSON.stringify(errJson)}`;
-    } catch(e) {}
+      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
+    } catch(e) {
+      const txt = await response.text().catch(() => '');
+      if (txt) errMsg += `: ${txt}`;
+    }
     throw new Error(errMsg);
   }
 
@@ -2240,7 +2441,7 @@ async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTe
     
     buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split('\n');
-    buffer = lines.pop();
+    buffer = lines.pop(); 
     
     for (const line of lines) {
       const cleaned = line.trim();
@@ -2269,6 +2470,7 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl, 
     }]
   };
   if (systemText) {
+    payload.systemInstruction = { parts: [{ text: systemText }] };
     payload.system_instruction = { parts: [{ text: systemText }] };
   }
 
@@ -2279,7 +2481,7 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl, 
       provider: 'gemini',
       apiKey,
       modelId: model,
-      url: customUrl,
+      url: (customUrl && customUrl.trim()) ? customUrl.trim() : undefined,
       payload
     })
   });
@@ -2288,8 +2490,11 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl, 
     let errMsg = `HTTP ${response.status}`;
     try {
       const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || JSON.stringify(errJson)}`;
-    } catch(e) {}
+      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
+    } catch(e) {
+      const txt = await response.text().catch(() => '');
+      if (txt) errMsg += `: ${txt}`;
+    }
     throw new Error(errMsg);
   }
 
@@ -2298,7 +2503,7 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl, 
   if (text) {
     outputTextEl.textContent = text;
   } else {
-    throw new Error('Empty response from Gemini API');
+    throw new Error(json.promptFeedback?.blockReason ? `Blocked: ${json.promptFeedback.blockReason}` : 'Empty response from Gemini API');
   }
 }
 
@@ -2321,7 +2526,7 @@ async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextE
       provider: 'anthropic',
       apiKey,
       modelId: model,
-      url: customUrl,
+      url: (customUrl && customUrl.trim()) ? customUrl.trim() : undefined,
       payload
     })
   });
@@ -2330,8 +2535,11 @@ async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextE
     let errMsg = `HTTP ${response.status}`;
     try {
       const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || JSON.stringify(errJson)}`;
-    } catch(e) {}
+      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
+    } catch(e) {
+      const txt = await response.text().catch(() => '');
+      if (txt) errMsg += `: ${txt}`;
+    }
     throw new Error(errMsg);
   }
 
@@ -2417,6 +2625,10 @@ $('btnCopyResponse').onclick = async () => {
 
 $('copy').onclick=async()=>{await navigator.clipboard.writeText($('output').innerText || $('output').textContent);$('status').textContent=L[lang].copied};
 $('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('output').innerText || $('output').textContent],{type:'text/plain'}));a.download='optimized-prompt.txt';a.click();$('status').textContent=L[lang].downloaded};
+if ($('btnCopyPreview')) $('btnCopyPreview').onclick = () => $('copy').click();
+if ($('btnRunPreview')) $('btnRunPreview').onclick = () => $('run').click();
+if ($('btnDownloadPreview')) $('btnDownloadPreview').onclick = () => $('download').click();
+
 $('clear').onclick=()=>{
   const hasData = data[active] && Object.values(data[active]).some(v => String(v ?? '').trim() !== '');
   if (hasData && !confirm(L[lang].clearConfirm)) return;

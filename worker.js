@@ -109,7 +109,12 @@ async function handleRun(request) {
       break;
     case 'gemini': {
       const model = modelId || 'gemini-2.5-flash';
-      const base = customUrl || `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      let base = (customUrl || '').trim();
+      if (!base) {
+        base = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      } else if (!base.includes(':generateContent')) {
+        base = `${base.replace(/\/+$/, '')}/${model}:generateContent`;
+      }
       upstreamUrl = `${base}?key=${apiKey}`;
       break;
     }
