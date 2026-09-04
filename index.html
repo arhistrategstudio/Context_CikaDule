@@ -1689,7 +1689,10 @@ function input([key,kind,def]){
   let control;
   const ph=placeholder[key]?.[lang==='en'?0:1]||'';
   if(kind==='textarea')control='<textarea id="f-'+key+'" placeholder="'+esc(ph)+'">'+esc(data[active]?.[key]??'')+'</textarea>';
-  else if(kind==='select')control='<select id="f-'+key+'">'+selects[key].map(([v,n])=>'<option value="'+v+'" '+((data[active]?.[key]??def)===v?'selected':'')+'>'+n+'</option>').join('')+'</select>';
+  else if(kind==='select'){
+    if(!data[active] || data[active][key] === undefined) { data[active] ??= {}; data[active][key] = def; }
+    control='<select id="f-'+key+'">'+selects[key].map(([v,n])=>'<option value="'+v+'" '+((data[active]?.[key]??def)===v?'selected':'')+'>'+n+'</option>').join('')+'</select>';
+  }
   else control='<input id="f-'+key+'" value="'+esc(data[active]?.[key]??'')+'" placeholder="'+esc(ph)+'">';
   
   let tipHtml = '';
@@ -1747,13 +1750,18 @@ function renderFields(){
 
   $('fields').querySelectorAll('input,textarea,select').forEach(el=>{
     const key=el.id.slice(2);
-    el.addEventListener('input',()=>{
+    const handleUpdate = () => {
       data[active]??={};
       data[active][key]=el.value;
       const ftEl = $('ft-'+key);
       if(ftEl) ftEl.textContent = countTokens(el.value, familyOf(val('model')||'gpt')) + ' tok';
       build();
-    });
+      if(key === 'model') {
+        updateModelActionButtons(el.value);
+      }
+    };
+    el.addEventListener('input', handleUpdate);
+    el.addEventListener('change', handleUpdate);
     el.addEventListener('focus', () => {
       document.querySelectorAll('.prompt-segment').forEach(s => s.classList.remove('active-highlight'));
       const target = document.querySelector(`[data-segment="${key}"]`);
@@ -1785,17 +1793,20 @@ function renderFields(){
 
 function val(k){
   if(k==='task'){
-    let r=data[active]?.[k]??$('f-'+k)?.value;
+    const domEl = $('f-'+k);
+    let r = (domEl && domEl.value !== undefined) ? domEl.value : data[active]?.[k];
     if(!r){
-      if(active==='coding')r=data[active]?.['desired']??$('f-desired')?.value;
-      else if(active==='image'||active==='video'||active==='comfy')r=data[active]?.['subject']??$('f-subject')?.value;
-      else if(active==='imageEdit')r=data[active]?.['change']??$('f-change')?.value;
-      else if(active==='workflow')r=data[active]?.['trigger']??$('f-trigger')?.value;
-      else if(active==='voice')r=data[active]?.['script']??$('f-script')?.value;
+      if(active==='coding')r=$('f-desired')?.value ?? data[active]?.['desired'];
+      else if(active==='image'||active==='video'||active==='comfy')r=$('f-subject')?.value ?? data[active]?.['subject'];
+      else if(active==='imageEdit')r=$('f-change')?.value ?? data[active]?.['change'];
+      else if(active==='workflow')r=$('f-trigger')?.value ?? data[active]?.['trigger'];
+      else if(active==='voice')r=$('f-script')?.value ?? data[active]?.['script'];
     }
     return String(r??'').trim();
   }
-  return String(data[active]?.[k]??$('f-'+k)?.value??'').trim();
+  const domEl = $('f-'+k);
+  const v = (domEl && domEl.value !== undefined) ? domEl.value : data[active]?.[k];
+  return String(v??'').trim();
 }
 
 const row=(k,n=k)=>val(k)?n+': '+val(k):'';
@@ -2060,6 +2071,7 @@ function build(){
   }
 
   $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m) + (compact ? ' · ' + L[lang].compactOnNote : '');
+  updateModelActionButtons(m);
 }
 
 function render(){renderTypes();renderFields();build();updateModelActionButtons();}
@@ -2086,8 +2098,6 @@ function setLang(l){
   // Novi preview dugmići i elementi
   if ($('copyPreviewT')) $('copyPreviewT').textContent = q.copyPreview || q.copy;
   if ($('downloadPreviewT')) $('downloadPreviewT').textContent = q.downloadPreview || q.down;
-  if ($('runExternalT')) $('runExternalT').textContent = q.openInModel;
-  if ($('externalPreviewT')) $('externalPreviewT').textContent = q.openInModel;
   if ($('resEmptyTitle')) $('resEmptyTitle').textContent = q.resEmptyTitle;
   if ($('resEmptyDesc')) $('resEmptyDesc').textContent = q.resEmptyDesc;
   if ($('savingsTextVal')) $('savingsTextVal').textContent = q.savingsPillLabel || 'SAVED';
@@ -2135,17 +2145,17 @@ $('btnCompact').onclick = () => {
 };
 
 const modelUrls = {
-  gpt: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
-  reasoning: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
+  gpt: p => (!p || p.length > 1500) ? `https://chatgpt.com/` : `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
+  reasoning: p => (!p || p.length > 1500) ? `https://chatgpt.com/` : `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
   claude: () => `https://claude.ai/new`,
   claudeCode: () => `https://claude.ai/new`,
   gemini: () => `https://gemini.google.com/app`,
   qwen: () => `https://chat.qwenlm.ai/`,
   qwenThinking: () => `https://chat.qwenlm.ai/`,
   deepseek: () => `https://chat.deepseek.com/`,
-  perplexity: p => `https://www.perplexity.ai/?q=${encodeURIComponent(p)}`,
+  perplexity: p => (!p || p.length > 1500) ? `https://www.perplexity.ai/` : `https://www.perplexity.ai/?q=${encodeURIComponent(p)}`,
   midjourney: () => `https://alpha.midjourney.com/`,
-  dalle: p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
+  dalle: p => (!p || p.length > 1500) ? `https://chatgpt.com/` : `https://chatgpt.com/?q=${encodeURIComponent(p)}`,
   stable: () => `https://civitai.com/`,
   comfy: () => `http://127.0.0.1:8188/`,
   sora: () => `https://sora.com/`,
@@ -2154,8 +2164,8 @@ const modelUrls = {
   ollama: () => `http://localhost:3000/`,
   local: () => `http://localhost:3000/`,
   bolt: () => `https://bolt.new/`,
-  cursor: () => `https://cursor.sh/`,
-  copilot: () => `https://github.com/features/copilot`,
+  cursor: () => `https://www.cursor.com/`,
+  copilot: () => `https://github.com/copilot`,
   devin: () => `https://devin.ai/`
 };
 
@@ -2278,8 +2288,8 @@ function getShortModelName(m) {
   return map[m] || 'Model';
 }
 
-function updateModelActionButtons() {
-  const m = val('model') || 'gpt';
+function updateModelActionButtons(targetModel) {
+  const m = targetModel || val('model') || 'gpt';
   const modelName = getShortModelName(m);
   const prefix = L[lang]?.openInModelPrefix || (lang === 'en' ? 'OPEN IN ' : 'OTVORI U ');
   const label = prefix + modelName.toUpperCase();
@@ -2288,6 +2298,14 @@ function updateModelActionButtons() {
   if (el1) el1.textContent = label;
   const el2 = $('externalPreviewT');
   if (el2) el2.textContent = label;
+
+  const tooltip = (lang === 'en')
+    ? `Copy prompt and open in ${modelName}`
+    : `Kopiraj prompt i otvori u ${modelName}`;
+  const btn1 = $('runExternalBtn');
+  if (btn1) btn1.title = tooltip;
+  const btn2 = $('btnExternalPreview');
+  if (btn2) btn2.title = tooltip;
 
   updateRunButtonState();
 }
