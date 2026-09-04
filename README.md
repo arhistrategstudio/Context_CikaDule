@@ -1,5 +1,9 @@
 # NEON//CONTEXT — Context_CikaDule
 
+LIVE DEMO
+
+Live demo: https://arhistrategstudio.github.io/Context_CikaDule/
+
 OVERVIEW
 
 NEON//CONTEXT is a small frontend + Cloudflare Worker backend that acts as a prompt-engineering console and proxy to multiple model providers (OpenAI, OpenRouter, Anthropic, Google Gemini, Cloudflare Workers AI, or a local OpenAI-compatible server).
@@ -10,7 +14,7 @@ This repository contains a static frontend (`index.html`) and a Cloudflare Worke
 
 WHAT I ADDED
 
-- scripts/smoke-test.js — a safe smoke-test runner that tries the worker endpoints for configured providers. It will SKIP any provider for which you have not set an environment variable for the key (so you can run it without API keys).
+- scripts/smoke-test.js — a safe smoke-test runner that tries the worker endpoints for configured providers. It will SKIP any provider for which you have not set an environment variable for the key (so you can run it without keys).
 - package.json — minimal npm manifest with a `smoke-test` script.
 - this README with quickstart and recommended repo structure.
 
@@ -78,8 +82,6 @@ Current repo is compact. I recommend the following structure to make it more mai
   │   └─ smoke-test.js
   ├─ .github/workflows/     # CI (lint, smoke tests, deploy)
   └─ docs/                  # architecture, API docs, contrib
-
-You can migrate files into these directories (move `index.html` into `frontend/` and images into `frontend/assets/`, and move `worker.js` into `worker/`) — adjust `wrangler.toml` and any references accordingly.
 
 SECURITY & HARDENING NOTES
 
