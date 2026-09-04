@@ -531,11 +531,37 @@ select option {
   border-radius: 6px;
 }
 .preview-run {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  border-color: var(--primary);
+}
+.preview-run:hover {
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+
+#runExternalBtn, .preview-external {
   background: linear-gradient(135deg, var(--secondary), var(--secondary-hover));
   border-color: var(--secondary);
 }
-.preview-run:hover {
+#runExternalBtn:hover, .preview-external:hover {
   box-shadow: 0 0 16px var(--secondary-glow);
+}
+
+.api-not-configured-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 32px 20px;
+  text-align: center;
+  margin: 20px auto;
+  max-width: 520px;
+}
+
+.api-error-card {
+  background: rgba(236, 72, 153, 0.08);
+  border: 1px solid rgba(236, 72, 153, 0.35);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 10px;
 }
 
 .response-empty-state {
@@ -1007,7 +1033,8 @@ select option {
     <div class="form" id="fields"></div>
     <div class="actions">
       <button class="primary" id="copy">▣ <span id="copyT">COPY PROMPT</span></button>
-      <button class="primary" id="run">⚡ <span id="runT">RUN IN MODEL</span></button>
+      <button class="primary" id="runExternalBtn">↗ <span id="runExternalT">OPEN IN MODEL</span></button>
+      <button class="primary" id="run">⚡ <span id="runT">RUN IN CONSOLE</span></button>
       <button class="secondary" id="download">↓ <span id="downloadT">DOWNLOAD .TXT</span></button>
       <span id="status"></span>
     </div>
@@ -1037,7 +1064,8 @@ select option {
     
     <div class="preview-actions">
       <button class="primary preview-btn" id="btnCopyPreview">▣ <span id="copyPreviewT">COPY PROMPT</span></button>
-      <button class="primary preview-btn preview-run" id="btnRunPreview">⚡ <span id="runPreviewT">RUN IN MODEL</span></button>
+      <button class="primary preview-btn preview-external" id="btnExternalPreview">↗ <span id="externalPreviewT">OPEN IN MODEL</span></button>
+      <button class="primary preview-btn preview-run" id="btnRunPreview">⚡ <span id="runPreviewT">RUN IN CONSOLE</span></button>
       <button class="secondary preview-btn" id="btnDownloadPreview">↓ <span id="downloadPreviewT">DOWNLOAD .TXT</span></button>
     </div>
 
@@ -1178,9 +1206,15 @@ const L={
     resEmptyDesc:'Click RUN DIRECTLY (or RUN IN MODEL) to execute this prompt. Live streaming output from the model will appear right here.',
     savingsPillLabel:'SAVED',
     copyPreview:'COPY PROMPT',
-    runPreview:'RUN IN MODEL',
+    openInModel:'OPEN IN MODEL',
+    openInModelPrefix:'OPEN IN ',
+    runInConsole:'RUN IN CONSOLE',
+    runPreview:'RUN IN CONSOLE',
     runDirectPreview:'RUN DIRECTLY',
-    downloadPreview:'DOWNLOAD .TXT'
+    downloadPreview:'DOWNLOAD .TXT',
+    apiNotConfiguredTitle:'API KEY REQUIRED FOR IN-CONSOLE RUN',
+    apiNotConfiguredDesc:'To stream responses directly in this console, add your API key in Settings. You can also open this prompt directly in the official web app right now.',
+    openInExternalApp:'Open in Web App'
   },
   sr:{
     tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
@@ -1194,7 +1228,7 @@ const L={
     opt:'Optimizovani prompt',
     copied:'Prompt je kopiran.',
     downloaded:'Fajl je preuzet.',
-    run:'POKRENI U MODELU',
+    run:'POKRENI U KONZOLI',
     decompileRun:'⚙ POKRENI DEKOMPAJLER',
     decompileNoInput:'Prvo nalepi originalni prompt.',
     modeToggleLabel:'POLJA:',
@@ -1231,12 +1265,18 @@ const L={
     autodetectQuestionsTitle:'Dodatna pitanja od AI-ja:',
     autodetectErrorPrefix:'Auto-detekcija nije uspela: ',
     resEmptyTitle:'NEMA ODGOVORA MODELA JOŠ',
-    resEmptyDesc:'Kliknite na POKRENI DIREKTNO (ili POKRENI U MODELU) da izvršite ovaj prompt. Odgovor modela u realnom vremenu će se pojaviti ovde.',
+    resEmptyDesc:'Kliknite na POKRENI U KONZOLI (ili OTVORI U MODELU) da izvršite ovaj prompt. Odgovor modela u realnom vremenu će se pojaviti ovde.',
     savingsPillLabel:'UŠTEĐENO',
     copyPreview:'KOPIRAJ PROMPT',
-    runPreview:'POKRENI U MODELU',
+    openInModel:'OTVORI U MODELU',
+    openInModelPrefix:'OTVORI U ',
+    runInConsole:'POKRENI U KONZOLI',
+    runPreview:'POKRENI U KONZOLI',
     runDirectPreview:'POKRENI DIREKTNO',
-    downloadPreview:'PREUZMI .TXT'
+    downloadPreview:'PREUZMI .TXT',
+    apiNotConfiguredTitle:'POTREBAN JE API KLJUČ ZA RAD U KONZOLI',
+    apiNotConfiguredDesc:'Da biste primali odgovore modela direktno u ovoj konzoli, dodajte svoj API ključ u Podešavanjima. Takođe možete odmah otvoriti ovaj prompt direktno u zvaničnoj veb aplikaciji.',
+    openInExternalApp:'Otvori u veb aplikaciji'
   }
 };
 const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
@@ -1586,7 +1626,7 @@ function collapseBlankLines(str) {
   return str.replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function esc(s){return s.replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]))}
+function esc(s){return String(s ?? '').replace(/[&<>]/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[x]))}
 function title(key){return label[key]?.[lang==='en'?0:1]||key}
 
 function isExpressField(activeType, fieldKey) {
@@ -2022,7 +2062,7 @@ function build(){
   $('note').textContent='Profile: '+(active==='analysis'&&['reasoning','qwenThinking','deepseek'].includes(m)?'Reasoning-safe — no explicit chain-of-thought.':models[m]||m) + (compact ? ' · ' + L[lang].compactOnNote : '');
 }
 
-function render(){renderTypes();renderFields();build();updateRunButtonState();}
+function render(){renderTypes();renderFields();build();updateModelActionButtons();}
 
 function setLang(l){
   lang=l;
@@ -2046,6 +2086,8 @@ function setLang(l){
   // Novi preview dugmići i elementi
   if ($('copyPreviewT')) $('copyPreviewT').textContent = q.copyPreview || q.copy;
   if ($('downloadPreviewT')) $('downloadPreviewT').textContent = q.downloadPreview || q.down;
+  if ($('runExternalT')) $('runExternalT').textContent = q.openInModel;
+  if ($('externalPreviewT')) $('externalPreviewT').textContent = q.openInModel;
   if ($('resEmptyTitle')) $('resEmptyTitle').textContent = q.resEmptyTitle;
   if ($('resEmptyDesc')) $('resEmptyDesc').textContent = q.resEmptyDesc;
   if ($('savingsTextVal')) $('savingsTextVal').textContent = q.savingsPillLabel || 'SAVED';
@@ -2208,6 +2250,48 @@ function setActiveTab(tab) {
 tabPrompt.onclick = () => setActiveTab('prompt');
 tabResponse.onclick = () => setActiveTab('response');
 
+function getShortModelName(m) {
+  const map = {
+    gpt: 'ChatGPT',
+    reasoning: 'o1 / o3',
+    claude: 'Claude',
+    claudeCode: 'Claude Code',
+    gemini: 'Gemini',
+    qwen: 'Qwen',
+    qwenThinking: 'Qwen',
+    deepseek: 'DeepSeek',
+    perplexity: 'Perplexity',
+    midjourney: 'Midjourney',
+    dalle: 'DALL-E',
+    stable: 'Stable Diff.',
+    comfy: 'ComfyUI',
+    sora: 'Sora',
+    voice: 'ElevenLabs',
+    zapier: 'Zapier',
+    ollama: 'Ollama',
+    local: 'Llama',
+    bolt: 'Bolt.new',
+    cursor: 'Cursor',
+    copilot: 'Copilot',
+    devin: 'Devin'
+  };
+  return map[m] || 'Model';
+}
+
+function updateModelActionButtons() {
+  const m = val('model') || 'gpt';
+  const modelName = getShortModelName(m);
+  const prefix = L[lang]?.openInModelPrefix || (lang === 'en' ? 'OPEN IN ' : 'OTVORI U ');
+  const label = prefix + modelName.toUpperCase();
+
+  const el1 = $('runExternalT');
+  if (el1) el1.textContent = label;
+  const el2 = $('externalPreviewT');
+  if (el2) el2.textContent = label;
+
+  updateRunButtonState();
+}
+
 function updateRunButtonState() {
   const provider = localStorage.getItem('nc_api_provider');
   const apiKey = localStorage.getItem('nc_api_key');
@@ -2225,12 +2309,12 @@ function updateRunButtonState() {
   const runPreviewText = $('runPreviewT');
 
   const label = isConfigured 
-    ? (lang === 'en' ? 'RUN DIRECTLY' : 'POKRENI DIREKTNO') 
-    : L[lang].run;
+    ? (lang === 'en' ? 'RUN IN CONSOLE' : 'POKRENI U KONZOLI') 
+    : (lang === 'en' ? 'RUN (API)' : 'POKRENI (API)');
   const bg = isConfigured 
     ? 'linear-gradient(135deg, var(--primary), var(--primary-hover))' 
-    : 'linear-gradient(135deg, var(--secondary), var(--secondary-hover))';
-  const border = isConfigured ? 'var(--primary)' : 'var(--secondary)';
+    : 'linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.2))';
+  const border = isConfigured ? 'var(--primary)' : 'rgba(99, 102, 241, 0.5)';
   
   if (runBtn) {
     runBtn.style.background = bg;
@@ -2245,32 +2329,48 @@ function updateRunButtonState() {
   if (runPreviewText) runPreviewText.textContent = label;
 }
 
+function runExternal(promptText) {
+  const m = val('model') || 'gpt';
+  const text = promptText || ($('output').innerText || $('output').textContent);
+  
+  if (navigator?.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
+
+  const modelName = getShortModelName(m);
+  const getUrl = modelUrls[m] || (p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`);
+  const targetUrl = getUrl(text);
+
+  const win = window.open(targetUrl, '_blank');
+
+  const statusMsg = lang === 'en'
+    ? `✓ Prompt copied! Opening ${modelName}...`
+    : `✓ Prompt je kopiran! Otvaram ${modelName}...`;
+
+  if (!win || win.closed || typeof win.closed === 'undefined') {
+    const fallbackMsg = lang === 'en'
+      ? `Pop-up blocked. <a href="${esc(targetUrl)}" target="_blank" style="color:var(--accent);text-decoration:underline;font-weight:700;">Click here to open ${esc(modelName)}</a>`
+      : `Pop-up blokiran. <a href="${esc(targetUrl)}" target="_blank" style="color:var(--accent);text-decoration:underline;font-weight:700;">Kliknite ovde da otvorite ${esc(modelName)}</a>`;
+    $('status').innerHTML = fallbackMsg;
+  } else {
+    $('status').textContent = statusMsg;
+  }
+}
+
 async function runInModel() {
+  const promptText = $('output').innerText || $('output').textContent;
+  if (!promptText.trim()) return;
+
   const provider = localStorage.getItem('nc_api_provider');
   const apiKey = localStorage.getItem('nc_api_key');
   const cfAccountId = localStorage.getItem('nc_cf_account_id');
   const customUrl = localStorage.getItem('nc_api_url');
   const modelId = localStorage.getItem('nc_api_model');
-
-  const promptText = $('output').innerText || $('output').textContent;
-
-  // Role/persona content routes to each provider's real system field
-  // (OpenAI system role, Anthropic `system` param, Google
-  // `system_instruction`) instead of only living inline in the user
-  // prompt. Local/OSS (Cloudflare Workers AI + Custom/Ollama/LM Studio)
-  // has no guaranteed chat template, so it deliberately keeps role
-  // folded into the user block only — matching what's already visible
-  // in the prompt preview above.
   const systemText = val('role');
 
   const hasKey = apiKey && apiKey.trim().length > 0;
   const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
   const isCustomOrLocal = provider === 'custom';
-
-  if (!hasKey && !isCfConfigured && !isCustomOrLocal) {
-    runExternal(promptText);
-    return;
-  }
 
   setActiveTab('response');
   const responseTextEl = $('response-output-text');
@@ -2278,51 +2378,74 @@ async function runInModel() {
   const emptyEl = $('responseEmptyState');
   if (emptyEl) emptyEl.style.display = 'none';
 
+  if (!hasKey && !isCfConfigured && !isCustomOrLocal) {
+    responseLoader.style.display = 'none';
+    const m = val('model') || 'gpt';
+    const modelName = getShortModelName(m);
+    const q = L[lang];
+    responseTextEl.innerHTML = `
+      <div class="api-not-configured-card">
+        <div style="font-size: 28px; margin-bottom: 10px;">🔑</div>
+        <div style="font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 8px;">${esc(q.apiNotConfiguredTitle)}</div>
+        <p style="font-size: 13px; color: var(--text-muted); max-width: 480px; margin: 0 auto 18px; line-height: 1.5;">${esc(q.apiNotConfiguredDesc)}</p>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button class="primary" id="btnGoToApiSettings" style="padding: 8px 16px; font-size: 13px;">⚙ ${esc(q.apiSettings)}</button>
+          <button class="secondary" id="btnGoToExternal" style="padding: 8px 16px; font-size: 13px;">↗ ${esc(q.openInModelPrefix + modelName.toUpperCase())}</button>
+        </div>
+      </div>
+    `;
+    $('btnGoToApiSettings').onclick = showModal;
+    $('btnGoToExternal').onclick = () => runExternal(promptText);
+    return;
+  }
+
   responseTextEl.textContent = "";
   responseLoader.style.display = "flex";
   $('responseStatusText').textContent = L[lang].connecting;
 
   try {
     if (provider === 'cloudflare') {
-      // Local/OSS family — no system field.
       await callCloudflare(cfAccountId, apiKey, modelId, promptText, responseTextEl);
     } else if (provider === 'gemini') {
       await callGemini(apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
     } else if (provider === 'anthropic') {
       await callAnthropic(apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
     } else if (provider === 'custom') {
-      // Local/OSS family (Ollama/LM Studio) — chat template may not
-      // define a system role, so don't rely on one; role already
-      // lives in promptText.
       await callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, responseTextEl);
     } else {
-      // openai + openrouter (pass-through, OpenAI-compatible endpoint
-      // regardless of the underlying model picked) — safe to send a
-      // real system message.
       await callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
     }
   } catch (err) {
-    console.error(err);
-    responseTextEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${L[lang].errorOccurred} ${esc(err.message)}</span><br/><br/><button class="secondary" id="btnErrorFallback" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔄 Fallback to external page</button>`;
+    console.error("API Call error:", err);
+    const errText = err?.message || String(err || 'Unknown error');
+    const m = val('model') || 'gpt';
+    const modelName = getShortModelName(m);
+    responseTextEl.innerHTML = `
+      <div class="api-error-card">
+        <div style="color: var(--accent); font-weight: 700; margin-bottom: 8px; font-size: 14px;">${esc(L[lang].errorOccurred)} ${esc(errText)}</div>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+          ${lang === 'en' ? 'You can configure your API settings or open this prompt directly in the web app:' : 'Možete promeniti API podešavanja ili otvoriti ovaj prompt direktno u zvaničnoj veb aplikaciji:'}
+        </p>
+        <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+          <button class="secondary" id="btnErrorFallback" style="padding: 8px 16px; font-size: 12px;">↗ ${esc(L[lang].openInModelPrefix + modelName.toUpperCase())}</button>
+          <button class="secondary" id="btnErrorSettings" style="padding: 8px 16px; font-size: 12px;">⚙ ${esc(L[lang].apiSettings)}</button>
+        </div>
+      </div>
+    `;
     $('btnErrorFallback').onclick = () => runExternal(promptText);
+    $('btnErrorSettings').onclick = showModal;
   } finally {
     responseLoader.style.display = "none";
-    if (emptyEl && (!responseTextEl.textContent || responseTextEl.textContent.trim().length === 0)) {
-      emptyEl.style.display = 'flex';
+    if (emptyEl) {
+      if (!responseTextEl.textContent || responseTextEl.textContent.trim().length === 0) {
+        emptyEl.style.display = 'flex';
+      } else {
+        emptyEl.style.display = 'none';
+      }
     }
   }
 }
 $('run').onclick = runInModel;
-
-function runExternal(promptText) {
-  const m = val('model') || 'gpt';
-  if (navigator?.clipboard?.writeText) {
-    navigator.clipboard.writeText(promptText).catch(() => {});
-    $('status').textContent = L[lang].copied;
-  }
-  const getUrl = modelUrls[m] || (p => `https://chatgpt.com/?q=${encodeURIComponent(p)}`);
-  window.open(getUrl(promptText), '_blank');
-}
 
 async function callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, outputTextEl, systemText) {
   const messages = [];
@@ -2361,6 +2484,16 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
 
   $('responseStatusText').textContent = L[lang].receiving;
 
+  const ct = response.headers.get('content-type') || '';
+  if (ct.includes('application/json')) {
+    const json = await response.json();
+    const text = json.choices?.[0]?.message?.content || json.choices?.[0]?.text || '';
+    if (text) {
+      outputTextEl.textContent = text;
+      return;
+    }
+  }
+
   const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
@@ -2394,6 +2527,14 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
     try {
       const json = JSON.parse(buffer.slice(6));
       const text = json.choices?.[0]?.delta?.content || '';
+      if (text) outputTextEl.textContent += text;
+    } catch (e) {}
+  }
+
+  if (!outputTextEl.textContent && buffer.trim()) {
+    try {
+      const json = JSON.parse(buffer.trim());
+      const text = json.choices?.[0]?.message?.content || json.choices?.[0]?.delta?.content || json.choices?.[0]?.text || '';
       if (text) outputTextEl.textContent += text;
     } catch (e) {}
   }
@@ -2625,6 +2766,8 @@ $('btnCopyResponse').onclick = async () => {
 
 $('copy').onclick=async()=>{await navigator.clipboard.writeText($('output').innerText || $('output').textContent);$('status').textContent=L[lang].copied};
 $('download').onclick=()=>{let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('output').innerText || $('output').textContent],{type:'text/plain'}));a.download='optimized-prompt.txt';a.click();$('status').textContent=L[lang].downloaded};
+if ($('runExternalBtn')) $('runExternalBtn').onclick = () => runExternal();
+if ($('btnExternalPreview')) $('btnExternalPreview').onclick = () => runExternal();
 if ($('btnCopyPreview')) $('btnCopyPreview').onclick = () => $('copy').click();
 if ($('btnRunPreview')) $('btnRunPreview').onclick = () => $('run').click();
 if ($('btnDownloadPreview')) $('btnDownloadPreview').onclick = () => $('download').click();
