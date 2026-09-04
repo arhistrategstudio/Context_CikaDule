@@ -1,0 +1,16 @@
+{
+  "name": "context-cikadule-smoke-tests",
+  "version": "1.0.0",
+  "description": "Helper scripts and smoke tests for Context_CikaDule",
+  "main": "scripts/smoke-test.js",
+  "scripts": {
+    "smoke-test": "node scripts/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["smoke-test","neon","context","cikadule"],
+  "author": "arhistrategstudio",
+  "license": "MIT",
+  "dependencies": {}
+}
