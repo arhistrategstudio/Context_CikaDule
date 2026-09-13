@@ -2218,7 +2218,7 @@ function input([key,kind,def]){
   if(kind==='textarea')control='<textarea id="f-'+key+'" placeholder="'+esc(ph)+'">'+esc(data[active]?.[key]??'')+'</textarea>';
   else if(kind==='select'){
     if(!data[active] || data[active][key] === undefined) { data[active] ??= {}; data[active][key] = def; }
-    control='<select id="f-'+key+'">'+selects[key].map(([v,n])=>'<option value="'+v+'" '+((data[active]?.[key]??def)===v?'selected':'')+'>'+n+'</option>').join('')+'</select>';
+    control='<select id="f-'+key+'">'+selects[key].map(([v,n])=>'<option value="'+esc(v)+'" '+((data[active]?.[key]??def)===v?'selected':'')+'>'+esc(n)+'</option>').join('')+'</select>';
   }
   else control='<input id="f-'+key+'" value="'+esc(data[active]?.[key]??'')+'" placeholder="'+esc(ph)+'">';
   
