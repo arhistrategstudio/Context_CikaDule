@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Helper scripts and smoke tests for Context_CikaDule",
   "scripts": {
-    "test": "node scripts/smoke-test.js",
+    "test": "node scripts/smoke-test.js && node scripts/verify-app.mjs",
     "smoke-test": "node scripts/smoke-test.js",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"

@@ -371,6 +371,12 @@ input:focus, textarea:focus, select:focus {
   background: rgba(9, 9, 11, 0.8);
 }
 
+:focus-visible { outline: 3px solid var(--secondary); outline-offset: 3px; }
+.skip-link { position: fixed; top: 12px; left: 12px; z-index: 100; padding: 10px 14px; background: var(--secondary); color: #fff; border-radius: 6px; transform: translateY(-160%); }
+.skip-link:focus { transform: translateY(0); }
+.template-toggle { width: 100%; margin-top: 6px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
 select option {
   background: var(--panel-bg-solid);
   color: var(--text-main);
@@ -985,6 +991,7 @@ select option {
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="top">
   <div class="brand-wrapper">
     <img src="orao.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
@@ -1004,11 +1011,11 @@ select option {
     </div>
   </div>
 </header>
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
   <button class="on" id="navBuilder">▣ CONTEXT BUILDER</button>
   <button id="clear">↺ <span id="clearT">CLEAR ACTIVE FORM</span></button>
 </nav>
-<main class="app">
+<main class="app" id="main-content">
   <aside>
     <p class="eyebrow" id="typeT">Context type / template</p>
     <div class="types" id="types"></div>
@@ -1036,14 +1043,14 @@ select option {
       <button class="primary" id="runExternalBtn">↗ <span id="runExternalT">OPEN IN MODEL</span></button>
       <button class="primary" id="run">⚡ <span id="runT">RUN IN CONSOLE</span></button>
       <button class="secondary" id="download">↓ <span id="downloadT">DOWNLOAD .TXT</span></button>
-      <span id="status"></span>
+      <span id="status" role="status" aria-live="polite"></span>
     </div>
   </section>
   <section class="preview">
     <div class="previewHead">
       <div>
         <p class="eyebrow" id="previewT">LIVE PROMPT PREVIEW</p>
-        <h1 id="previewH">Optimized prompt</h1>
+        <h2 id="previewH">Optimized prompt</h2>
       </div>
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <div class="compact-toggle-container">
@@ -1103,15 +1110,15 @@ select option {
 </main>
 
 <!-- API Settings Modal -->
-<div id="apiModal" class="modal-overlay">
+<div id="apiModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitleT">
   <div class="modal-content">
     <div class="modal-header">
       <h2 id="modalTitleT">API Configuration</h2>
-      <button class="modal-close" id="btnValClose">&times;</button>
+      <button class="modal-close" id="btnValClose" aria-label="Close API settings">&times;</button>
     </div>
     <div class="modal-body">
       <div>
-        <label id="lblProviderT">API Provider</label>
+        <label id="lblProviderT" for="apiProvider">API Provider</label>
         <select id="apiProvider">
           <option value="openai">OpenAI (ChatGPT)</option>
           <option value="cloudflare">Cloudflare Workers AI</option>
@@ -1123,34 +1130,36 @@ select option {
       </div>
       
       <div id="cfAccountIdGroup" style="display: none;">
-        <label id="lblCfAccountT">Cloudflare Account ID</label>
+        <label id="lblCfAccountT" for="cfAccountId">Cloudflare Account ID</label>
         <input type="text" id="cfAccountId" placeholder="e.g. 1a2b3c4d5e6f7g8h9i0j...">
       </div>
       
       <div>
-        <label id="lblApiKeyT">API Key / Token</label>
+        <label id="lblApiKeyT" for="apiKey">API Key / Token</label>
         <input type="password" id="apiKey" placeholder="Paste your API key here...">
       </div>
       
       <div>
-        <label id="lblApiUrlT">API URL (Optional)</label>
+        <label id="lblApiUrlT" for="apiUrl">API URL (Optional)</label>
         <input type="text" id="apiUrl" placeholder="https://api.openai.com/v1/chat/completions">
       </div>
       
       <div>
-        <label id="lblApiModelT">Model ID</label>
+        <label id="lblApiModelT" for="apiModel">Model ID</label>
         <input type="text" id="apiModel" placeholder="gpt-4o-mini">
       </div>
     </div>
     <div class="modal-footer">
       <button class="secondary" id="btnApiCancel">Cancel</button>
+      <button class="secondary" id="btnApiTest" type="button">Test connection</button>
       <button class="primary" id="btnApiSave">Save Settings</button>
+      <span id="apiTestStatus" role="status" aria-live="polite"></span>
     </div>
   </div>
 </div>
 
 <script>
-const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express',compact=false;
+const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express',compact=false,showAdvancedTemplates=false;
 const WORKER_URL='https://cikadule-prompt-console.arhistrategstudio.workers.dev';
 let autoDetectText='',autoDetectQuestions=[],autoDetectQuestionsFor=null;
 const L={
@@ -1184,6 +1193,12 @@ const L={
     lblApiUrl:'API URL (Optional)',
     lblApiModel:'Model ID',
     apiCancel:'Cancel',
+    apiTest:'Test connection',
+    apiTesting:'Checking Worker connection...',
+    apiConnected:'Worker connection is working. Your API key was not sent.',
+    apiConnectionFailed:'Cannot reach the Worker. Check your internet connection and try again.',
+    showMoreTemplates:'Show all templates',
+    showLessTemplates:'Show fewer templates',
     apiSave:'Save Settings',
     tabPrompt:'Prompt',
     tabResponse:'Response',
@@ -1246,6 +1261,12 @@ const L={
     lblApiUrl:'API URL (Opciono)',
     lblApiModel:'Model ID',
     apiCancel:'Otkaži',
+    apiTest:'Proveri vezu',
+    apiTesting:'Proveravam vezu sa Worker-om...',
+    apiConnected:'Veza sa Worker-om radi. API ključ nije poslat.',
+    apiConnectionFailed:'Worker nije dostupan. Proverite internet vezu i pokušajte ponovo.',
+    showMoreTemplates:'Prikaži sve šablone',
+    showLessTemplates:'Prikaži manje šablona',
     apiSave:'Sačuvaj podešavanja',
     tabPrompt:'Prompt',
     tabResponse:'Odgovor',
@@ -1661,9 +1682,14 @@ function renderTypes(){
   const q=L[lang];
   const autoBtn='<button class="type type-ai '+(mode==='autodetect'?'on':'')+'" id="typeAutoDetect"><b>✨</b><div><strong>'+esc(q.autodetectSidebarLabel)+'</strong><span>'+esc(q.autodetectSidebarDesc)+'</span></div></button>';
   const divider='<hr class="type-divider">';
-  const typeButtons=Object.entries(specs).map(([k,s])=>'<button class="type '+(mode!=='autodetect'&&k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');
+  const starterTypes = ['general', 'coding', 'research'];
+  const visibleTypes = showAdvancedTemplates || !starterTypes.includes(active)
+    ? Object.entries(specs)
+    : Object.entries(specs).filter(([key]) => starterTypes.includes(key));
+  const typeButtons=visibleTypes.map(([k,s])=>'<button class="type '+(mode!=='autodetect'&&k===active?'on':'')+'" data-type="'+k+'"><b>'+s.icon+'</b><div><strong>'+s.name[lang==='en'?0:1]+'</strong><span>'+s.desc[lang==='en'?0:1]+'</span></div></button>').join('');
+  const toggle='<button class="secondary template-toggle" id="btnTemplateToggle" type="button">'+esc(showAdvancedTemplates ? q.showLessTemplates : q.showMoreTemplates)+'</button>';
 
-  el.innerHTML=autoBtn+divider+typeButtons;
+  el.innerHTML=autoBtn+divider+typeButtons+toggle;
 
   $('typeAutoDetect').onclick=()=>{
     mode='autodetect';
@@ -1683,6 +1709,7 @@ function renderTypes(){
     setActiveTab('prompt');
     render();
   });
+  $('btnTemplateToggle').onclick=()=>{ showAdvancedTemplates=!showAdvancedTemplates; renderTypes(); };
 }
 
 function input([key,kind,def]){
@@ -1707,7 +1734,7 @@ function input([key,kind,def]){
     tokensHtml = `<div class="field-tokens" id="ft-${key}">${countTokens(currentVal)} tok</div>`;
   }
   
-  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label>'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
+  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
 }
 
 function renderAutoDetect(){
@@ -2111,6 +2138,7 @@ function setLang(l){
   $('lblApiUrlT').textContent = q.lblApiUrl;
   $('lblApiModelT').textContent = q.lblApiModel;
   $('btnApiCancel').textContent = q.apiCancel;
+  $('btnApiTest').textContent = q.apiTest;
   $('btnApiSave').textContent = q.apiSave;
   $('tabPrompt').textContent = q.tabPrompt;
   $('tabResponse').textContent = q.tabResponse;
@@ -2176,6 +2204,7 @@ const apiModal = $('apiModal');
 const btnApiSettings = $('btnApiSettings');
 const btnValClose = $('btnValClose');
 const btnApiCancel = $('btnApiCancel');
+const btnApiTest = $('btnApiTest');
 const btnApiSave = $('btnApiSave');
 const apiProvider = $('apiProvider');
 const cfAccountIdGroup = $('cfAccountIdGroup');
@@ -2193,6 +2222,7 @@ function showModal() {
   $('apiModel').value = localStorage.getItem('nc_api_model') || defaultEndpoints[apiProvider.value].model;
   
   toggleCfGroup();
+  $('apiTestStatus').textContent = '';
   apiModal.classList.add('open');
 }
 
@@ -2220,6 +2250,21 @@ apiProvider.addEventListener('change', () => {
 btnApiSettings.onclick = showModal;
 btnValClose.onclick = hideModal;
 btnApiCancel.onclick = hideModal;
+
+btnApiTest.onclick = async () => {
+  const status = $('apiTestStatus');
+  btnApiTest.disabled = true;
+  status.textContent = L[lang].apiTesting;
+  try {
+    const response = await fetch(`${WORKER_URL}/api/run`, { method: 'OPTIONS' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    status.textContent = L[lang].apiConnected;
+  } catch (error) {
+    status.textContent = L[lang].apiConnectionFailed;
+  } finally {
+    btnApiTest.disabled = false;
+  }
+};
 
 btnApiSave.onclick = () => {
   localStorage.setItem('nc_api_provider', apiProvider.value);
@@ -2465,6 +2510,21 @@ async function runInModel() {
 }
 $('run').onclick = runInModel;
 
+async function apiError(response) {
+  let detail = '';
+  try {
+    const body = await response.json();
+    detail = body?.error?.message || body?.error || body?.message || '';
+  } catch (error) {}
+  const messages = {
+    401: lang === 'en' ? 'Your API key was rejected. Check the key and selected provider.' : 'API ključ nije prihvaćen. Proverite ključ i izabranog provajdera.',
+    403: lang === 'en' ? 'This API key does not have permission for the selected model.' : 'Ovaj API ključ nema dozvolu za izabrani model.',
+    404: lang === 'en' ? 'The model or API URL was not found. Check Settings.' : 'Model ili API URL nisu pronađeni. Proverite Podešavanja.',
+    429: lang === 'en' ? 'The provider rate limit or spending limit was reached. Try again later.' : 'Dostignuto je ograničenje provajdera ili potrošnje. Pokušajte kasnije.'
+  };
+  return messages[response.status] || detail || `HTTP ${response.status}`;
+}
+
 async function callOpenAICompatible(provider, apiKey, modelId, customUrl, promptText, outputTextEl, systemText) {
   const messages = [];
   if (systemText) messages.push({ role: 'system', content: systemText });
@@ -2488,17 +2548,7 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
     })
   });
 
-  if (!response.ok) {
-    let errMsg = `HTTP ${response.status}`;
-    try {
-      const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
-    } catch(e) {
-      const txt = await response.text().catch(() => '');
-      if (txt) errMsg += `: ${txt}`;
-    }
-    throw new Error(errMsg);
-  }
+  if (!response.ok) throw new Error(await apiError(response));
 
   $('responseStatusText').textContent = L[lang].receiving;
 
@@ -2576,17 +2626,7 @@ async function callCloudflare(cfAccountId, apiKey, modelId, promptText, outputTe
     })
   });
 
-  if (!response.ok) {
-    let errMsg = `HTTP ${response.status}`;
-    try {
-      const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
-    } catch(e) {
-      const txt = await response.text().catch(() => '');
-      if (txt) errMsg += `: ${txt}`;
-    }
-    throw new Error(errMsg);
-  }
+  if (!response.ok) throw new Error(await apiError(response));
 
   $('responseStatusText').textContent = L[lang].receiving;
 
@@ -2645,17 +2685,7 @@ async function callGemini(apiKey, modelId, customUrl, promptText, outputTextEl, 
     })
   });
 
-  if (!response.ok) {
-    let errMsg = `HTTP ${response.status}`;
-    try {
-      const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
-    } catch(e) {
-      const txt = await response.text().catch(() => '');
-      if (txt) errMsg += `: ${txt}`;
-    }
-    throw new Error(errMsg);
-  }
+  if (!response.ok) throw new Error(await apiError(response));
 
   const json = await response.json();
   const text = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -2690,17 +2720,7 @@ async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextE
     })
   });
 
-  if (!response.ok) {
-    let errMsg = `HTTP ${response.status}`;
-    try {
-      const errJson = await response.json();
-      errMsg += `: ${errJson.error?.message || errJson.message || JSON.stringify(errJson)}`;
-    } catch(e) {
-      const txt = await response.text().catch(() => '');
-      if (txt) errMsg += `: ${txt}`;
-    }
-    throw new Error(errMsg);
-  }
+  if (!response.ok) throw new Error(await apiError(response));
 
   const json = await response.json();
   const text = json.content?.[0]?.text || '';
