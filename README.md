@@ -84,6 +84,28 @@ Seamlessly toggle between **English** and **Serbian (Srpski)** with one click. E
 - `Ctrl + Shift + C`: Copy compiled prompt.
 - `Esc`: Close modal dialogs.
 
+### 10. 🧩 Guided/Extended Context-Engineering Fields
+Switch the workspace to **Guided/Extended** to expose the fields that shape a production context window, each with an inline explanation (EN/SR) and a live token count:
+- **System instructions** — highest-priority rules and persona (also sent as the provider's native `system` / `system_instruction` when running in-console).
+- **Attached knowledge / files** — reference documents or file contents the model may use.
+- **Retrieved context** — search or RAG chunks used to ground the answer.
+- **Conversation history** — prior turns that give the model memory and continuity.
+- **User state / task context** — the user's current situation so the response adapts.
+- **Tool access** — which tools/functions the model is allowed to call, and when.
+- **Model settings & parameters** — temperature, `top_p`, `max_tokens`, etc., recorded with the run.
+- Existing expert fields (**output format**, **task/objective**, tone, chain-of-thought, delimiters, terminology, edge cases, clarification, negative constraints, success criteria, examples) are kept exactly as they were — no duplicates.
+
+### 11. 🗂️ Prompt Version Library (Context Snapshots)
+Save the current prompt as a version and reload it later. Each snapshot stores the full context-engineering record:
+- the **prompt version** label,
+- the **model and parameters**,
+- the **brand voice context** (tone + context + audience),
+- the **example outputs**,
+- the **source documents used** (approved sources, retrieved context, attached files),
+- the **evaluation criteria**,
+- the **workflow steps before and after** the prompt, plus notes.
+Versions are stored locally in `localStorage` and can be restored, copied, exported (single or all) as JSON, imported, and deleted. **Restore** returns every original field so a version is fully reproducible.
+
 ---
 
 ## 🔒 Security & Privacy (BYOK)

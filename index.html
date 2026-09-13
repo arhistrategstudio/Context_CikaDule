@@ -1301,6 +1301,165 @@ select option {
   }
 }
 
+/* --- PROMPT VERSION LIBRARY --- */
+.versions-modal-content {
+  max-width: 760px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.versions-save h3,
+.versions-list-wrap h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.versions-save {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.versions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.versions-save > div:not(.versions-grid):not(.versions-save-actions) {
+  margin-bottom: 12px;
+}
+.versions-save textarea {
+  min-height: 64px;
+}
+.version-capture {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: rgba(9, 9, 11, 0.5);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.version-capture strong {
+  color: var(--text-main);
+}
+.version-capture .vc-ok {
+  color: var(--secondary);
+}
+.version-capture .vc-miss {
+  color: var(--text-muted);
+  opacity: 0.55;
+}
+.versions-save-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#versionsStatus {
+  color: var(--secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+.versions-list-wrap {
+  margin-top: 22px;
+}
+.versions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.versions-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 14px;
+  border: 1px dashed var(--panel-border);
+  border-radius: 8px;
+  text-align: center;
+}
+.version-card {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.version-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.version-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.18);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+.version-type {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.version-date,
+.version-model {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.version-model {
+  margin-left: auto;
+  border: 1px solid var(--secondary);
+  color: var(--secondary);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.version-block {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-top: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.version-block b {
+  color: var(--text-main);
+  font-weight: 600;
+}
+.version-block code {
+  color: #93c5fd;
+  font-family: var(--font-mono);
+}
+.version-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  border-top: 1px solid var(--panel-border);
+  padding-top: 10px;
+}
+.version-actions button {
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+@media(max-width: 560px) {
+  .versions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1327,6 +1486,7 @@ select option {
 <nav class="nav" aria-label="Main navigation">
   <button class="on" id="navBuilder">▣ CONTEXT BUILDER</button>
   <button class="arena-nav-btn" id="navArena" title="Compare prompts and execution between two models">⚖ <span id="arenaNavT">ARENA (A/B)</span></button>
+  <button class="arena-nav-btn" id="navVersions" title="Save and revisit prompt versions with full context metadata">🗂 <span id="versionsNavT">VERSIONS</span></button>
   <button id="clear">↺ <span id="clearT">CLEAR ACTIVE FORM</span></button>
 </nav>
 <main class="app" id="main-content">
@@ -1373,6 +1533,7 @@ select option {
       <button class="primary" id="runExternalBtn">↗ <span id="runExternalT">OPEN IN MODEL</span></button>
       <button class="primary" id="run">⚡ <span id="runT">RUN IN CONSOLE</span></button>
       <button class="secondary" id="download">↓ <span id="downloadT">DOWNLOAD .TXT</span></button>
+      <button class="secondary" id="btnSaveVersion">💾 <span id="saveVersionT">SAVE VERSION</span></button>
       <span id="status" role="status" aria-live="polite"></span>
     </div>
   </section>
@@ -1405,6 +1566,7 @@ select option {
       <button class="primary preview-btn preview-external" id="btnExternalPreview">↗ <span id="externalPreviewT">OPEN IN MODEL</span></button>
       <button class="primary preview-btn preview-run" id="btnRunPreview">⚡ <span id="runPreviewT">RUN IN CONSOLE</span></button>
       <button class="secondary preview-btn" id="btnDownloadPreview">↓ <span id="downloadPreviewT">DOWNLOAD .TXT</span></button>
+      <button class="secondary preview-btn" id="btnSaveVersionPreview">💾 <span id="saveVersionPreviewT">SAVE VERSION</span></button>
     </div>
 
     <div class="preview-tabs-container">
@@ -1563,6 +1725,57 @@ select option {
   </div>
 </div>
 
+<!-- Prompt Versions Modal -->
+<div id="versionsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="versionsTitleT">
+  <div class="modal-content versions-modal-content">
+    <div class="modal-header">
+      <h2 id="versionsTitleT">Prompt Versions</h2>
+      <button class="modal-close" id="btnVersionsClose" aria-label="Close prompt versions">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="versions-save">
+        <h3 id="versionsSaveHeading">Save current prompt version</h3>
+        <div class="versions-grid">
+          <div>
+            <label id="lblVersionT" for="versionLabel">Version</label>
+            <input type="text" id="versionLabel">
+          </div>
+          <div>
+            <label id="lblVersionModelT" for="versionModel">Model</label>
+            <input type="text" id="versionModel" readonly>
+          </div>
+        </div>
+        <div>
+          <label id="lblVersionNotesT" for="versionNotes">Notes</label>
+          <textarea id="versionNotes" placeholder="What changed in this version and why..."></textarea>
+        </div>
+        <div class="versions-grid">
+          <div>
+            <label id="lblVersionBeforeT" for="versionBefore">Workflow steps before</label>
+            <textarea id="versionBefore" placeholder="What happens before this prompt in the workflow..."></textarea>
+          </div>
+          <div>
+            <label id="lblVersionAfterT" for="versionAfter">Workflow steps after</label>
+            <textarea id="versionAfter" placeholder="What happens after this prompt in the workflow..."></textarea>
+          </div>
+        </div>
+        <div id="versionCapturePreview" class="version-capture"></div>
+        <div class="versions-save-actions">
+          <button class="primary" id="btnVersionSave">Save version</button>
+          <button class="secondary" id="btnVersionsExport">Export all</button>
+          <button class="secondary" id="btnVersionsImport">Import</button>
+          <input type="file" id="versionsImportFile" accept="application/json,.json" style="display:none">
+          <span id="versionsStatus" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+      <div class="versions-list-wrap">
+        <h3 id="versionsListHeading">Saved versions</h3>
+        <div id="versionsList" class="versions-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const $=x=>document.getElementById(x), data={};let active='general',lang='en',mode='express',compact=false,showAdvancedTemplates=false;
 const WORKER_URL='https://cikadule-prompt-console.arhistrategstudio.workers.dev';
@@ -1634,7 +1847,46 @@ const L={
     downloadPreview:'DOWNLOAD .TXT',
     apiNotConfiguredTitle:'API KEY REQUIRED FOR IN-CONSOLE RUN',
     apiNotConfiguredDesc:'To stream responses directly in this console, add your API key in Settings. You can also open this prompt directly in the official web app right now.',
-    openInExternalApp:'Open in Web App'
+    openInExternalApp:'Open in Web App',
+    versionsNav:'VERSIONS',
+    saveVersion:'SAVE VERSION',
+    versionsTitle:'Prompt Versions & Context Snapshot',
+    versionsSaveHeading:'Save current prompt version',
+    versionsListHeading:'Saved versions',
+    lblVersion:'Version',
+    lblVersionModel:'Model',
+    lblVersionNotes:'Notes',
+    lblVersionBefore:'Workflow steps before',
+    lblVersionAfter:'Workflow steps after',
+    versionSave:'Save version',
+    versionExportAll:'Export all',
+    versionImport:'Import',
+    versionSaved:'Version saved.',
+    versionEmpty:'No saved versions yet.',
+    versionNoPrompt:'Add prompt content before saving.',
+    versionRestore:'Restore',
+    versionCopy:'Copy prompt',
+    versionDownload:'JSON',
+    versionDelete:'Delete',
+    versionCopied:'Prompt copied.',
+    versionRestored:'Version restored.',
+    versionExported:'All versions exported.',
+    versionImported:'Versions imported.',
+    versionImportFailed:'Import failed: invalid file.',
+    versionCaptured:'Will be saved with this version:',
+    versionPromptLabel:'Prompt',
+    versionParametersLabel:'Model & parameters',
+    versionBrandVoiceLabel:'Brand voice context',
+    versionExamplesLabel:'Example outputs',
+    versionSourcesLabel:'Source documents used',
+    versionEvalLabel:'Evaluation criteria',
+    versionToolsLabel:'System instructions / tools',
+    versionBeforeLabel:'Workflow before',
+    versionAfterLabel:'Workflow after',
+    versionNotesLabel:'Notes',
+    versionNotesPlaceholder:'What changed in this version and why...',
+    versionBeforePlaceholder:'What happens before this prompt in the workflow...',
+    versionAfterPlaceholder:'What happens after this prompt in the workflow...'
   },
   sr:{
     tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
@@ -1702,7 +1954,46 @@ const L={
     downloadPreview:'PREUZMI .TXT',
     apiNotConfiguredTitle:'POTREBAN JE API KLJUČ ZA RAD U KONZOLI',
     apiNotConfiguredDesc:'Da biste primali odgovore modela direktno u ovoj konzoli, dodajte svoj API ključ u Podešavanjima. Takođe možete odmah otvoriti ovaj prompt direktno u zvaničnoj veb aplikaciji.',
-    openInExternalApp:'Otvori u veb aplikaciji'
+    openInExternalApp:'Otvori u veb aplikaciji',
+    versionsNav:'VERZIJE',
+    saveVersion:'SAČUVAJ VERZIJU',
+    versionsTitle:'Verzije prompta i snimak konteksta',
+    versionsSaveHeading:'Sačuvaj trenutnu verziju prompta',
+    versionsListHeading:'Sačuvane verzije',
+    lblVersion:'Verzija',
+    lblVersionModel:'Model',
+    lblVersionNotes:'Beleške',
+    lblVersionBefore:'Koraci pre',
+    lblVersionAfter:'Koraci posle',
+    versionSave:'Sačuvaj verziju',
+    versionExportAll:'Izvezi sve',
+    versionImport:'Uvezi',
+    versionSaved:'Verzija je sačuvana.',
+    versionEmpty:'Još nema sačuvanih verzija.',
+    versionNoPrompt:'Dodaj sadržaj prompta pre čuvanja.',
+    versionRestore:'Vrati',
+    versionCopy:'Kopiraj prompt',
+    versionDownload:'JSON',
+    versionDelete:'Obriši',
+    versionCopied:'Prompt je kopiran.',
+    versionRestored:'Verzija je vraćena.',
+    versionExported:'Sve verzije su izvezene.',
+    versionImported:'Verzije su uvezene.',
+    versionImportFailed:'Uvoz nije uspeo: neispravan fajl.',
+    versionCaptured:'Biće sačuvano uz ovu verziju:',
+    versionPromptLabel:'Prompt',
+    versionParametersLabel:'Model i parametri',
+    versionBrandVoiceLabel:'Kontekst glasa brenda',
+    versionExamplesLabel:'Primeri izlaza',
+    versionSourcesLabel:'Korišćeni izvorni dokumenti',
+    versionEvalLabel:'Kriterijumi evaluacije',
+    versionToolsLabel:'Sistemske instrukcije / alati',
+    versionBeforeLabel:'Koraci pre',
+    versionAfterLabel:'Koraci posle',
+    versionNotesLabel:'Beleške',
+    versionNotesPlaceholder:'Šta je promenjeno u ovoj verziji i zašto...',
+    versionBeforePlaceholder:'Šta se dešava pre ovog prompta u toku rada...',
+    versionAfterPlaceholder:'Šta se dešava posle ovog prompta u toku rada...'
   }
 };
 const placeholder={
@@ -1710,7 +2001,7 @@ const placeholder={
   success:['e.g. 1. Solves the root issue 2. Matches exact output format 3. No regression in tests','npr. 1. Rešava suštinski problem 2. U potpunosti prati format 3. Svi testovi prolaze'],
   edgeCases:['e.g. If input is empty, null, or malformed: return { error: "INVALID_INPUT" } and suggest corrective action.','npr. Ako je ulaz prazan ili neispravan: vrati { error: "INVALID_INPUT" } i navedi uputstvo za ispravku.'],
   terminology:['e.g. Use standard technical terminology (e.g. idempotency, payload, async). Do NOT translate English technical terms.','npr. Koristi standardnu stručnu terminologiju. Ne prevodi engleske tehničke nazive i biblioteke.'],
-  negativeConstraints:['e.g. NEVER make assumptions. Do NOT use deprecated packages. Do NOT include conversational filler like "Sure, I can help".','npr. NIKADA ne pretpostavljaj bez provere. NE koristi zastarele biblioteke. NE dodaj konverzacijska ćaskanja.'],role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
+  negativeConstraints:['e.g. NEVER make assumptions. Do NOT use deprecated packages. Do NOT include conversational filler like "Sure, I can help".','npr. NIKADA ne pretpostavljaj bez provere. NE koristi zastarele biblioteke. NE dodaj konverzacijska ćaskanja.'],role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)'],systemInstructions:['e.g. You are a senior content strategist. Always follow the brand voice, never invent facts, and think before answering.','npr. Ti si viši strateg sadržaja. Uvek prati glas brenda, ne izmišljaj činjenice i razmisli pre odgovora.'],knowledgeFiles:['e.g. brand-guide.pdf, tone-of-voice.md, product-facts.json — or paste the reference text here...','npr. brand-guide.pdf, tone-of-voice.md, product-facts.json — ili nalepi referentni tekst ovde...'],retrievedContext:['e.g. [Doc 1] ... [Doc 2] ... (paste retrieved chunks, search results or notes)','npr. [Dok 1] ... [Dok 2] ... (nalepi pronađene delove, rezultate pretrage ili beleške)'],conversationHistory:['e.g. User: ... | Assistant: ... | User: ...','npr. Korisnik: ... | Asistent: ... | Korisnik: ...'],userState:['e.g. First-time visitor on mobile, currently on the pricing page, in a hurry.','npr. Prvi put posećuje sajt sa telefona, trenutno je na stranici sa cenama, žuri mu se.'],toolAccess:['e.g. web_search, calculator, code_interpreter, file_reader — call a tool only when it is needed.','npr. web_search, calculator, code_interpreter, file_reader — pozovi alat samo kada je neophodan.'],modelSettings:['e.g. temperature: 0.4, top_p: 0.9, max_tokens: 1200, frequency_penalty: 0','npr. temperature: 0.4, top_p: 0.9, max_tokens: 1200, frequency_penalty: 0']};
 const label={
   tone:['Tone & style','Ton i stil'],
   success:['Success criteria / Done when','Kriterijumi uspeha / Završeno kada'],
@@ -1720,7 +2011,7 @@ const label={
   negativeConstraints:['Negative constraints (What NOT to do)','Negativna ograničenja (Šta NE raditi)'],
   delimiters:['Delimiters & data tags','Graničnici i tagovi podataka'],
   framework:['Prompting framework','Šablon razmišljanja (Framework)'],
-  clarification:['Clarification protocol','Protokol za razjašnjenja (Clarification)'],model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora']};
+  clarification:['Clarification protocol','Protokol za razjašnjenja (Clarification)'],model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora'],systemInstructions:['System instructions','Sistemske instrukcije'],knowledgeFiles:['Attached knowledge / files','Priloženo znanje / fajlovi'],retrievedContext:['Retrieved context','Pronađeni (retrieved) kontekst'],conversationHistory:['Conversation history','Istorija konverzacije'],userState:['User state / task context','Stanje korisnika / kontekst zadatka'],toolAccess:['Tool access','Pristup alatima'],modelSettings:['Model settings & parameters','Podešavanja modela i parametri']};
 const tips = {
   tone: {
     en: "Calibrates vocabulary, demeanor, and technical depth (e.g. executive summary vs engineering deep dive).",
@@ -1945,15 +2236,48 @@ const tips = {
   speechrate: {
     en: "Sets speech speed multiplier (e.g. 0.9 for deliberate/serious, 1.1 for brisk).",
     sr: "Podešava brzinu govora (npr. 0.9 za smireniji/ozbiljniji ton, 1.1 za brži govor)."
+  },
+  systemInstructions: {
+    en: "Highest-priority instructions (the model's system role). Use for persona, hard rules, and attached knowledge the model must always respect.",
+    sr: "Instrukcije najvišeg prioriteta (sistemska uloga modela). Koristi ih za personu, stroga pravila i priloženo znanje koje model mora uvek da poštuje."
+  },
+  knowledgeFiles: {
+    en: "Attach reference knowledge or file contents the model may use. Keep them clearly separated from your instructions.",
+    sr: "Priloži referentno znanje ili sadržaj fajlova koje model sme da koristi. Jasno ih odvoji od svojih instrukcija."
+  },
+  retrievedContext: {
+    en: "Chunks retrieved from search or a RAG store. Ground the answer in them and mark anything uncertain instead of guessing.",
+    sr: "Delovi pronađeni pretragom ili iz RAG baze. Zasnuj odgovor na njima i označi nešto kao neizvesno umesto da nagađaš."
+  },
+  conversationHistory: {
+    en: "Prior turns give the model memory and continuity. Summarize long histories to save tokens.",
+    sr: "Prethodni nalozi daju modelu pamćenje i kontinuitet. Sažmi duge istorije da uštediš tokene."
+  },
+  userState: {
+    en: "The user's current situation (device, page, goal, urgency) so the response adapts to it.",
+    sr: "Trenutna situacija korisnika (uređaj, stranica, cilj, žurba) kako bi se odgovor prilagodio."
+  },
+  toolAccess: {
+    en: "Declare which tools or functions the model may call, and when. This prevents invented tool use.",
+    sr: "Navedi koje alate ili funkcije model sme da pozove i kada. Time sprečavaš izmišljeno korišćenje alata."
+  },
+  modelSettings: {
+    en: "Generation parameters (temperature, top_p, max_tokens). Recording them documents the exact run configuration.",
+    sr: "Parametri generisanja (temperature, top_p, max_tokens). Njihovo beleženje dokumentuje tačnu konfiguraciju pokretanja."
   }
 };
 const common=[
   ['model','select','gpt'],
   ['answer','select','English'],
   ['framework','select','None'],
+  ['systemInstructions','textarea',''],
   ['task','textarea',''],
   ['role','text',''],
   ['context','textarea',''],
+  ['knowledgeFiles','textarea',''],
+  ['retrievedContext','textarea',''],
+  ['conversationHistory','textarea',''],
+  ['userState','textarea',''],
   ['format','select','Markdown'],
   ['length','text','e.g., under 250 words'],
   ['tone','text',''],
@@ -1963,6 +2287,8 @@ const common=[
   ['negativeConstraints','textarea',''],
   ['edgeCases','textarea',''],
   ['clarification','select','None'],
+  ['toolAccess','textarea',''],
+  ['modelSettings','textarea',''],
   ['success','textarea',''],
   ['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...']
 ];
@@ -1974,13 +2300,13 @@ creative:{icon:'✦',name:['Creative / brand','Kreativno / brend'],desc:['Voice,
 analysis:{icon:'◌',name:['Analysis / debugging','Analiza / debagovanje'],desc:['Logic, comparison, diagnosis','Logika, poređenje, dijagnostika'],fields:[...common,['constraints','textarea',''],['success','textarea','']]},
 fewshot:{icon:'≡',name:['Few-shot pattern','Few-shot obrazac'],desc:['Reliable structured output','Pouzdan strukturiran izlaz'],fields:[...common,['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...'],['success','textarea','']]},
 coding:{icon:'⌘',name:['Code edit','Izmena koda'],desc:['Cursor, Windsurf, Copilot','Cursor, Windsurf, Copilot'],fields:[['model','select','cursor'],['file','text','src/example.js'],['current','textarea',''],['desired','textarea',''],['scope','textarea','Only modify this file and component.'],['dont','textarea',''],['constraints','textarea','Language/framework and dependency limits'],['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...'],['success','textarea','']]},
-agent:{icon:'⚙',name:['Autonomous agent','Autonomni agent'],desc:['Claude Code, Devin, CLI agents','Claude Code, Devin, CLI agenti'],fields:[['model','select','claudeCode'],['task','textarea',''],['environment','textarea','OS: Windows\nShell: PowerShell\nWorking directory: '],['current','textarea',''],['desired','textarea',''],['scope','textarea','Read and edit only the stated folder.'],['dont','textarea','Do not push, deploy, or delete files.'],['stop','textarea','Pause before deletion, new APIs, dependencies, or after 2 failed attempts.'],['success','textarea','']]},
+agent:{icon:'⚙',name:['Autonomous agent','Autonomni agent'],desc:['Claude Code, Devin, CLI agents','Claude Code, Devin, CLI agenti'],fields:[['model','select','claudeCode'],['systemInstructions','textarea',''],['task','textarea',''],['environment','textarea','OS: Windows\nShell: PowerShell\nWorking directory: '],['conversationHistory','textarea',''],['userState','textarea',''],['current','textarea',''],['desired','textarea',''],['scope','textarea','Read and edit only the stated folder.'],['dont','textarea','Do not push, deploy, or delete files.'],['stop','textarea','Pause before deletion, new APIs, dependencies, or after 2 failed attempts.'],['toolAccess','textarea',''],['modelSettings','textarea',''],['success','textarea','']]},
 image:{icon:'◉',name:['Image generation','Generisanje slike'],desc:['Midjourney, DALL-E, Stable','Midjourney, DALL-E, Stable'],fields:[['model','select','midjourney'],['subject','text',''],['action','text',''],['setting','text',''],['style','text',''],['mood','text',''],['lighting','text',''],['palette','text',''],['composition','text',''],['aspect','text','16:9'],['negative','textarea','blurry, watermark, distortion']]},
 imageEdit:{icon:'◐',name:['Image edit','Izmena slike'],desc:['Change one thing, preserve rest','Izmeni jedno, sačuvaj ostalo'],fields:[['model','select','dalle'],['reference','textarea',''],['change','textarea',''],['constraints','textarea','Keep style, lighting, and all listed elements unchanged.'],['negative','textarea','']]},
 comfy:{icon:'▧',name:['ComfyUI','ComfyUI'],desc:['Positive / negative prompt','Pozitivan / negativan prompt'],fields:[['model','select','comfy'],['checkpoint','select','SDXL'],['subject','text',''],['style','text',''],['mood','text',''],['lighting','text',''],['composition','text',''],['negative','textarea','blurry, low quality, watermark'],['aspect','text','1024 x 1024']]},
 video:{icon:'▷',name:['Video generation','Generisanje videa'],desc:['Sora, Runway, Kling','Sora, Runway, Kling'],fields:[['model','select','sora'],['subject','text',''],['action','text',''],['setting','text',''],['camera','text','slow dolly in'],['duration','text','8 seconds'],['mood','text',''],['lighting','text',''],['cut','text','single continuous shot'],['aspect','text','16:9']]},
 voice:{icon:'🔊',name:['Voice AI','Glasovni AI'],desc:['ElevenLabs, Murf AI','ElevenLabs, Murf AI'],fields:[['model','select','voice'],['script','textarea',''],['emotion','text',''],['pacing','text',''],['speechrate','text','']]},
-research:{icon:'⌕',name:['Research','Istraživanje'],desc:['Search-grounded answers','Odgovori zasnovani na izvorima'],fields:[['model','select','perplexity'],['task','textarea',''],['searchmode','select','Search'],['sources','textarea',''],['audience','text',''],['format','select','Markdown'],['length','text','under 500 words'],['success','textarea','Cite the specific source for each factual claim.']]},
+research:{icon:'⌕',name:['Research','Istraživanje'],desc:['Search-grounded answers','Odgovori zasnovani na izvorima'],fields:[['model','select','perplexity'],['systemInstructions','textarea',''],['task','textarea',''],['searchmode','select','Search'],['sources','textarea',''],['knowledgeFiles','textarea',''],['retrievedContext','textarea',''],['conversationHistory','textarea',''],['userState','textarea',''],['audience','text',''],['format','select','Markdown'],['length','text','under 500 words'],['toolAccess','textarea',''],['modelSettings','textarea',''],['success','textarea','Cite the specific source for each factual claim.']]},
 workflow:{icon:'⇄',name:['Workflow automation','Automatizacija'],desc:['Zapier, Make, n8n','Zapier, Make, n8n'],fields:[['model','select','zapier'],['trigger','text',''],['actionapp','text',''],['mapping','textarea',''],['constraints','textarea','Assumes listed apps are already connected.'],['success','textarea','List numbered steps and data passed between them.']]},
 decompiler:{icon:'◇',name:['Prompt decompiler','Prompt dekompajler'],desc:['Break down, adapt, simplify','Razloži, prilagodi, pojednostavi'],fields:[['model','select','gpt'],['operation','select','Break down'],['original','textarea',''],['task','textarea',''],['format','select','Markdown']]}
 };
@@ -2234,7 +2560,7 @@ function input([key,kind,def]){
     tokensHtml = `<div class="field-tokens" id="ft-${key}">${countTokens(currentVal)} tok</div>`;
   }
   
-  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script','negativeConstraints','edgeCases','terminology'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
+  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script','negativeConstraints','edgeCases','terminology','systemInstructions','knowledgeFiles','retrievedContext','conversationHistory','userState','toolAccess','modelSettings'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
 }
 
 function renderAutoDetect(){
@@ -2355,7 +2681,7 @@ function modelRule(m){return {gpt:'Use a strong role, numbered instructions, num
 // language for simple prompts. Positive, direct instructions preferred
 // over lists of things to avoid.
 function buildAnthropicPrompt(f){
-  const sectionCount=['context','audience','steps','tone','constraints','sources','success','format','length','terminology','edgeCases','negativeConstraints']
+  const sectionCount=['systemInstructions','context','knowledgeFiles','retrievedContext','conversationHistory','userState','audience','steps','tone','constraints','sources','success','format','length','terminology','edgeCases','negativeConstraints','toolAccess','modelSettings']
     .filter(k=>f[k]).length;
   const useXml=sectionCount>=2;
 
@@ -2367,8 +2693,13 @@ function buildAnthropicPrompt(f){
   if(!useXml){
     return [
       wrap('framework', frameworkLine),
+      wrap('systemInstructions', row('systemInstructions','System instructions')),
       wrap('role', row('role','Role')),
       wrap('context', row('context','Context')),
+      wrap('knowledgeFiles', row('knowledgeFiles','Attached knowledge & files')),
+      wrap('retrievedContext', row('retrievedContext','Retrieved context')),
+      wrap('conversationHistory', row('conversationHistory','Conversation history')),
+      wrap('userState', row('userState','User state')),
       wrap('task', 'Task: '+f.task),
       wrap('cot', cotLine),
       wrap('constraints', row('constraints','Constraints')),
@@ -2377,8 +2708,10 @@ function buildAnthropicPrompt(f){
       wrap('terminology', row('terminology','Language & terminology')),
       wrap('delimiters', delimLine),
       wrap('clarification', clarLine),
+      wrap('toolAccess', row('toolAccess','Tool access')),
       wrap('success', row('success','Success criteria')),
       wrap('format', f.format?('Output format: '+f.format):''),
+      wrap('modelSettings', row('modelSettings','Model settings')),
       wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
     ];
   }
@@ -2386,8 +2719,13 @@ function buildAnthropicPrompt(f){
   const consLines=[f.constraints, f.tone?('Tone: '+f.tone):'', f.format?('Output format: '+f.format):'', f.length?('Maximum length: '+f.length):''].filter(Boolean).join('\n');
   return [
     wrap('framework', (f.framework && f.framework !== 'None') ? ('<methodology>\n' + f.framework + '\n</methodology>') : ''),
+    wrap('systemInstructions', f.systemInstructions?('<system_instructions>\n'+f.systemInstructions+'\n</system_instructions>'):''),
     wrap('role', f.role?('<role>\n'+f.role+'\n</role>'):''),
     wrap('context', ctxLines?('<context>\n'+ctxLines+'\n</context>'):''),
+    wrap('knowledgeFiles', f.knowledgeFiles?('<knowledge>\n'+f.knowledgeFiles+'\n</knowledge>'):''),
+    wrap('retrievedContext', f.retrievedContext?('<retrieved_context>\n'+f.retrievedContext+'\n</retrieved_context>'):''),
+    wrap('conversationHistory', f.conversationHistory?('<conversation_history>\n'+f.conversationHistory+'\n</conversation_history>'):''),
+    wrap('userState', f.userState?('<user_state>\n'+f.userState+'\n</user_state>'):''),
     wrap('task', '<task>\n'+f.task+(f.steps?('\n\nSteps:\n'+f.steps):'')+'\n</task>'),
     wrap('cot', (f.cot && f.cot !== 'None') ? ('<reasoning_protocol>\n' + f.cot + '\n</reasoning_protocol>') : ''),
     wrap('constraints', consLines?('<constraints>\n'+consLines+'\n</constraints>'):''),
@@ -2395,8 +2733,10 @@ function buildAnthropicPrompt(f){
     wrap('edgeCases', f.edgeCases?('<edge_cases>\n'+f.edgeCases+'\n</edge_cases>'):''),
     wrap('terminology', f.terminology?('<terminology_rules>\n'+f.terminology+'\n</terminology_rules>'):''),
     wrap('clarification', (f.clarification && f.clarification !== 'None') ? ('<clarification_protocol>\n' + f.clarification + '\n</clarification_protocol>') : ''),
+    wrap('toolAccess', f.toolAccess?('<tool_access>\n'+f.toolAccess+'\n</tool_access>'):''),
     wrap('sources', f.sources?('<sources>\n'+f.sources+'\n</sources>'):''),
     wrap('success', f.success?('<success_criteria>\n'+f.success+'\n</success_criteria>'):''),
+    wrap('modelSettings', f.modelSettings?('<model_settings>\n'+f.modelSettings+'\n</model_settings>'):''),
     wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
   ];
 }
@@ -2411,8 +2751,13 @@ function buildGoogleXPrompt(f){
 
   return [
     wrap('framework', frameworkLine),
+    wrap('systemInstructions', f.systemInstructions?('## System Instructions\n'+f.systemInstructions):''),
     wrap('role', f.role?('## Role\n'+f.role):''),
     wrap('context', (f.context||f.audience||delimLine)?('## Context\n'+[f.context, f.audience?('Audience: '+f.audience):'', delimLine].filter(Boolean).join('\n')):''),
+    wrap('knowledgeFiles', f.knowledgeFiles?('## Attached Knowledge & Files\n'+f.knowledgeFiles):''),
+    wrap('retrievedContext', f.retrievedContext?('## Retrieved Context\n'+f.retrievedContext+'\nBase the answer on the context above. Mark uncertain claims as [uncertain].'):''),
+    wrap('conversationHistory', f.conversationHistory?('## Conversation History\n'+f.conversationHistory):''),
+    wrap('userState', f.userState?('## User State\n'+f.userState):''),
     wrap('task', '## Task\n'+f.task+(f.steps?('\n\n'+f.steps):'')),
     wrap('cot', cotLine),
     wrap('constraints', (f.constraints||f.tone||f.format||f.length)?('## Constraints\n'+[f.constraints, f.tone?('Tone: '+f.tone):'', f.format?('Output format: '+f.format):'', f.length?('Max length: '+f.length):''].filter(Boolean).join('\n')):''),
@@ -2420,8 +2765,10 @@ function buildGoogleXPrompt(f){
     wrap('edgeCases', f.edgeCases?('## Edge Cases & Exceptions\n'+f.edgeCases):''),
     wrap('terminology', f.terminology?('## Language & Terminology\n'+f.terminology):''),
     wrap('clarification', clarLine),
+    wrap('toolAccess', f.toolAccess?('## Tool Access\n'+f.toolAccess):''),
     wrap('sources', f.sources?('## Sources\n'+f.sources+'\nUse only the sources above. Mark uncertain claims as [uncertain].'):''),
     wrap('success', f.success?('## Success Criteria\n'+f.success):''),
+    wrap('modelSettings', f.modelSettings?('## Model Settings\n'+f.modelSettings):''),
     wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
   ];
 }
@@ -2440,8 +2787,13 @@ function buildOpenAIPrompt(f){
 
   return [
     wrap('framework', frameworkLine),
+    wrap('systemInstructions', f.systemInstructions?('## System Instructions\n'+f.systemInstructions):''),
     wrap('role', f.role?('**Role:** '+f.role):''),
     wrap('context', (f.context||f.audience||delimLine)?('## Context\n'+[f.context, f.audience?('Audience: '+f.audience):'', delimLine].filter(Boolean).join('\n\n')):''),
+    wrap('knowledgeFiles', f.knowledgeFiles?('## Attached Knowledge & Files\n'+f.knowledgeFiles):''),
+    wrap('retrievedContext', f.retrievedContext?('## Retrieved Context\n'+f.retrievedContext):''),
+    wrap('conversationHistory', f.conversationHistory?('## Conversation History\n'+f.conversationHistory):''),
+    wrap('userState', f.userState?('## User State\n'+f.userState):''),
     wrap('task', '## Task\n'+f.task+stepsBlock),
     wrap('cot', cotLine),
     wrap('constraints', constraintLines.length?('## Constraints\n'+constraintLines.map(s=>'- '+s).join('\n')):''),
@@ -2449,9 +2801,11 @@ function buildOpenAIPrompt(f){
     wrap('edgeCases', f.edgeCases?('## Edge Cases & Error Handling\n'+f.edgeCases):''),
     wrap('terminology', f.terminology?('## Terminology & Vocabulary\n'+f.terminology):''),
     wrap('clarification', clarLine),
+    wrap('toolAccess', f.toolAccess?('## Tool Access\n'+f.toolAccess):''),
     wrap('sources', f.sources?('## Sources\n'+f.sources):''),
     wrap('success', f.success?('## Success Criteria\n'+f.success):''),
-    wrap('format', outLines.length?('## Output\n'+outLines.map(s=>'- '+s).join('\n')+'\n\nFormat the response in Markdown.'):'')
+    wrap('format', outLines.length?('## Output\n'+outLines.map(s=>'- '+s).join('\n')+'\n\nFormat the response in Markdown.'):''),
+    wrap('modelSettings', f.modelSettings?('## Model Settings\n'+f.modelSettings):'')
   ];
 }
 
@@ -2461,8 +2815,13 @@ function buildOpenAIPrompt(f){
 function buildLocalPrompt(f){
   return [
     wrap('framework', (f.framework && f.framework !== 'None') ? ('Methodology: ' + f.framework) : ''),
+    wrap('systemInstructions', row('systemInstructions','System instructions')),
     wrap('role', row('role','Role')),
     wrap('context', row('context','Context')),
+    wrap('knowledgeFiles', row('knowledgeFiles','Attached knowledge & files')),
+    wrap('retrievedContext', row('retrievedContext','Retrieved context')),
+    wrap('conversationHistory', row('conversationHistory','Conversation history')),
+    wrap('userState', row('userState','User state')),
     wrap('task', 'Task: '+f.task),
     wrap('steps', f.steps?('Steps: '+f.steps):''),
     wrap('cot', (f.cot && f.cot !== 'None') ? ('Reasoning: ' + f.cot) : ''),
@@ -2473,11 +2832,13 @@ function buildLocalPrompt(f){
     wrap('clarification', (f.clarification && f.clarification !== 'None') ? ('Clarification: ' + f.clarification) : ''),
     wrap('delimiters', (f.delimiters && f.delimiters !== 'None') ? ('Delimiters: ' + f.delimiters) : ''),
     wrap('tone', row('tone','Tone')),
+    wrap('toolAccess', row('toolAccess','Tool access')),
     wrap('sources', row('sources','Sources')),
     wrap('success', row('success','Success criteria')),
     wrap('answer', f.answerLang?('Output language: '+f.answerLang):''),
     wrap('format', f.format?('Output format: '+f.format):''),
-    wrap('length', f.length?('Maximum length: '+f.length):'')
+    wrap('length', f.length?('Maximum length: '+f.length):''),
+    wrap('modelSettings', row('modelSettings','Model settings'))
   ];
 }
 
@@ -2497,15 +2858,20 @@ function buildRaw(customModel){
     ].filter(Boolean);
   } else if(active==='agent') {
     a=[
+      wrap('systemInstructions', val('systemInstructions') ? (compact?'System instructions: ':'## System Instructions\n')+val('systemInstructions') : ''),
       wrap('task', (compact?'Objective: ':'## Objective\n')+task),
       wrap('environment', val('environment') ? (compact?'Environment: ':'## Environment\n')+val('environment') : ''),
+      wrap('conversationHistory', val('conversationHistory') ? (compact?'Conversation history: ':'## Conversation History\n')+val('conversationHistory') : ''),
+      wrap('userState', val('userState') ? (compact?'User state: ':'## User State\n')+val('userState') : ''),
       wrap('current', val('current') ? (compact?'Starting State: ':'## Starting State\n')+val('current') : ''),
       wrap('desired', val('desired') ? (compact?'Target State: ':'## Target State\n')+val('desired') : ''),
       wrap('scope', val('scope') ? (compact?'Allowed Actions: ':'## Allowed Actions\n')+val('scope') : ''),
       wrap('dont', val('dont') ? (compact?'Forbidden Actions: ':'## Forbidden Actions\n')+val('dont') : ''),
       wrap('stop', val('stop') ? (compact?'Stop Conditions: ':'## Stop Conditions\n')+val('stop') : ''),
+      wrap('toolAccess', val('toolAccess') ? (compact?'Tool access: ':'## Tool Access\n')+val('toolAccess') : ''),
       wrap('agent', compact ? '' : '## Checkpoints\nAfter each major step output: ✅ [what was completed].'),
-      wrap('success', val('success') ? (compact?'Done When: ':'## Done When\n')+val('success') : '')
+      wrap('success', val('success') ? (compact?'Done When: ':'## Done When\n')+val('success') : ''),
+      wrap('modelSettings', val('modelSettings') ? (compact?'Model settings: ':'## Model Settings\n')+val('modelSettings') : '')
     ].filter(Boolean);
   } else if(active==='image') {
     a=[
@@ -2579,7 +2945,13 @@ function buildRaw(customModel){
       role: val('role'), context: val('context'), audience: val('audience'),
       task, steps: val('steps'), tone: val('tone'), constraints: val('constraints'),
       sources: val('sources'), success: val('success'), answerLang: val('answer'),
-      format: val('format'), length: val('length')
+      format: val('format'), length: val('length'),
+      framework: val('framework'), cot: val('cot'), delimiters: val('delimiters'),
+      clarification: val('clarification'), negativeConstraints: val('negativeConstraints'),
+      edgeCases: val('edgeCases'), terminology: val('terminology'),
+      systemInstructions: val('systemInstructions'), knowledgeFiles: val('knowledgeFiles'),
+      retrievedContext: val('retrievedContext'), conversationHistory: val('conversationHistory'),
+      userState: val('userState'), toolAccess: val('toolAccess'), modelSettings: val('modelSettings')
     };
     const builders={ anthropic: buildAnthropicPrompt, google: buildGoogleXPrompt, openai: buildOpenAIPrompt, local: buildLocalPrompt };
     a=(builders[familyOf(m)]||buildLocalPrompt)(genericFields);
@@ -2702,6 +3074,26 @@ function setLang(l){
   if ($('arenaDescT')) $('arenaDescT').textContent = q.arenaDesc || 'Compare how your prompt compiles and executes across two distinct AI models.';
   if ($('arenaRunBothT')) $('arenaRunBothT').textContent = q.arenaRunBoth || 'RUN BOTH';
   if ($('arenaCopyBothT')) $('arenaCopyBothT').textContent = q.arenaCopyBoth || 'COPY BOTH';
+
+  // Prompt version library labels
+  if ($('versionsNavT')) $('versionsNavT').textContent = q.versionsNav || 'VERSIONS';
+  if ($('saveVersionT')) $('saveVersionT').textContent = q.saveVersion || 'SAVE VERSION';
+  if ($('saveVersionPreviewT')) $('saveVersionPreviewT').textContent = q.saveVersion || 'SAVE VERSION';
+  if ($('versionsTitleT')) $('versionsTitleT').textContent = q.versionsTitle || 'Prompt Versions';
+  if ($('versionsSaveHeading')) $('versionsSaveHeading').textContent = q.versionsSaveHeading || 'Save current prompt version';
+  if ($('versionsListHeading')) $('versionsListHeading').textContent = q.versionsListHeading || 'Saved versions';
+  if ($('lblVersionT')) $('lblVersionT').textContent = q.lblVersion || 'Version';
+  if ($('lblVersionModelT')) $('lblVersionModelT').textContent = q.lblVersionModel || 'Model';
+  if ($('lblVersionNotesT')) $('lblVersionNotesT').textContent = q.lblVersionNotes || 'Notes';
+  if ($('lblVersionBeforeT')) $('lblVersionBeforeT').textContent = q.lblVersionBefore || 'Workflow steps before';
+  if ($('lblVersionAfterT')) $('lblVersionAfterT').textContent = q.lblVersionAfter || 'Workflow steps after';
+  if ($('btnVersionSave')) $('btnVersionSave').textContent = q.versionSave || 'Save version';
+  if ($('btnVersionsExport')) $('btnVersionsExport').textContent = q.versionExportAll || 'Export all';
+  if ($('btnVersionsImport')) $('btnVersionsImport').textContent = q.versionImport || 'Import';
+  if ($('versionsModal') && $('versionsModal').classList.contains('open')) {
+    renderCapturePreview();
+    renderVersionsList();
+  }
   if (typeof updatePromptQuality === 'function') updatePromptQuality();
   if (typeof arenaActive !== 'undefined' && arenaActive && typeof updateArena === 'function') updateArena();
 
@@ -2990,7 +3382,7 @@ async function runInModel() {
   const cfAccountId = localStorage.getItem('nc_cf_account_id');
   const customUrl = localStorage.getItem('nc_api_url');
   const modelId = localStorage.getItem('nc_api_model');
-  const systemText = val('role');
+  const systemText = [val('systemInstructions'), val('role')].filter(Boolean).join('\n\n');
 
   const hasKey = apiKey && apiKey.trim().length > 0;
   const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
@@ -3386,7 +3778,7 @@ function calculatePromptQuality() {
   const currentRole = (val('role') || '').trim();
   const currentConstraints = (val('constraints') || val('dont') || val('stop') || val('negative') || '').trim();
   const currentFormat = (val('format') || val('aspect') || val('cut') || val('mapping') || val('speechrate') || '').trim();
-  const currentContext = (val('context') || val('steps') || val('examples') || val('reference') || val('sources') || val('environment') || val('current') || '').trim();
+  const currentContext = (val('context') || val('retrievedContext') || val('knowledgeFiles') || val('conversationHistory') || val('systemInstructions') || val('steps') || val('examples') || val('reference') || val('sources') || val('environment') || val('current') || '').trim();
 
   let score = 0;
   const isVisual = ['image', 'imageEdit', 'comfy', 'video'].includes(active);
@@ -3630,7 +4022,7 @@ async function runArenaSide(side) {
   try {
     const customUrl = localStorage.getItem('nc_api_url');
     const modelId = localStorage.getItem('nc_api_model');
-    const systemText = val('role');
+    const systemText = [val('systemInstructions'), val('role')].filter(Boolean).join('\n\n');
 
     if (provider === 'cloudflare') {
       const cfId = localStorage.getItem('nc_cf_account_id');
@@ -3701,6 +4093,260 @@ function setupArenaEvents() {
 }
 
 /* ============================================================
+   PROMPT VERSION LIBRARY
+   Saves a full context-engineering snapshot of the current prompt:
+     - the prompt version
+     - the model and parameters
+     - the brand voice context
+     - example outputs
+     - the source documents used
+     - the evaluation criteria
+     - the workflow steps before and after it
+   Stored in localStorage and exportable/importable as JSON.
+   ============================================================ */
+const VERSIONS_KEY = 'nc_prompt_versions';
+let versionsState = [];
+
+function loadVersions() {
+  try {
+    const raw = localStorage.getItem(VERSIONS_KEY);
+    versionsState = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(versionsState)) versionsState = [];
+  } catch (e) { versionsState = []; }
+  return versionsState;
+}
+function persistVersions() {
+  try { localStorage.setItem(VERSIONS_KEY, JSON.stringify(versionsState)); } catch (e) {}
+}
+function nextVersionLabel() {
+  let max = 0;
+  versionsState.forEach(v => {
+    const m = String(v.version || '').match(/(\d+)/);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return 'v' + (max + 1);
+}
+function versionMetaLine(icon, label, value) {
+  const has = value && String(value).trim();
+  return '<div class="version-block">' + icon + ' <b>' + esc(label) + ':</b> ' +
+    (has ? '<code>' + esc(String(value).replace(/\s+/g, ' ').slice(0, 220)) + '</code>' : '<span class="vc-miss">—</span>') +
+    '</div>';
+}
+function collectVersionSnapshot(meta) {
+  const promptText = ($('output').innerText || $('output').textContent || '').trim();
+  const m = val('model') || 'gpt';
+  return {
+    id: 'ver_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    version: (meta.version || '').trim() || nextVersionLabel(),
+    createdAt: new Date().toISOString(),
+    type: active,
+    typeName: (specs[active] && specs[active].name[lang === 'en' ? 0 : 1]) || active,
+    mode: mode,
+    prompt: promptText,
+    tokens: countTokens(promptText, familyOf(m)),
+    model: m,
+    modelLabel: models[m] || m,
+    parameters: val('modelSettings'),
+    brandVoice: { tone: val('tone'), context: val('context'), audience: val('audience') },
+    exampleOutputs: val('examples'),
+    sourceDocuments: { approved: val('sources'), retrieved: val('retrievedContext'), attached: val('knowledgeFiles') },
+    evaluationCriteria: val('success'),
+    systemInstructions: val('systemInstructions'),
+    toolAccess: val('toolAccess'),
+    conversationHistory: val('conversationHistory'),
+    userState: val('userState'),
+    workflow: { before: (meta.before || '').trim(), after: (meta.after || '').trim() },
+    notes: (meta.notes || '').trim(),
+    fields: JSON.parse(JSON.stringify(data[active] || {}))
+  };
+}
+function renderCapturePreview() {
+  const el = $('versionCapturePreview');
+  if (!el) return;
+  const m = val('model') || 'gpt';
+  const bv = [val('tone'), val('context'), val('audience')].filter(Boolean);
+  const src = [val('sources'), val('retrievedContext'), val('knowledgeFiles')].filter(Boolean);
+  const Lc = L[lang] || L.en;
+  const lines = [
+    ['📄', Lc.versionPromptLabel, ($('output').innerText || '').trim()],
+    ['🎛', Lc.versionParametersLabel, [models[m] || m, val('modelSettings')].filter(Boolean).join(' · ')],
+    ['🗣', Lc.versionBrandVoiceLabel, bv.join(' · ')],
+    ['🧩', Lc.versionExamplesLabel, val('examples')],
+    ['📚', Lc.versionSourcesLabel, src.join(' · ')],
+    ['✅', Lc.versionEvalLabel, val('success')],
+    ['🔧', Lc.versionToolsLabel, [val('systemInstructions'), val('toolAccess')].filter(Boolean).join(' · ')]
+  ];
+  el.innerHTML = '<strong>' + esc(Lc.versionCaptured) + '</strong>\n' +
+    lines.map(([icon, label, value]) => versionMetaLine(icon, label, value)).join('');
+}
+function openVersionsModal() {
+  loadVersions();
+  const Lc = L[lang] || L.en;
+  if ($('versionLabel')) $('versionLabel').value = nextVersionLabel();
+  if ($('versionModel')) $('versionModel').value = models[val('model')] || val('model') || '—';
+  if ($('versionsStatus')) $('versionsStatus').textContent = '';
+  if ($('versionBefore')) $('versionBefore').placeholder = Lc.versionBeforePlaceholder || $('versionBefore').placeholder;
+  if ($('versionAfter')) $('versionAfter').placeholder = Lc.versionAfterPlaceholder || $('versionAfter').placeholder;
+  if ($('versionNotes')) $('versionNotes').placeholder = Lc.versionNotesPlaceholder || $('versionNotes').placeholder;
+  renderCapturePreview();
+  renderVersionsList();
+  $('versionsModal').classList.add('open');
+}
+function hideVersionsModal() { $('versionsModal').classList.remove('open'); }
+function saveCurrentVersion() {
+  const Lc = L[lang] || L.en;
+  const snapshot = collectVersionSnapshot({
+    version: $('versionLabel') ? $('versionLabel').value : '',
+    notes: $('versionNotes') ? $('versionNotes').value : '',
+    before: $('versionBefore') ? $('versionBefore').value : '',
+    after: $('versionAfter') ? $('versionAfter').value : ''
+  });
+  if (!snapshot.prompt) {
+    $('versionsStatus').textContent = Lc.versionNoPrompt;
+    return;
+  }
+  versionsState.push(snapshot);
+  persistVersions();
+  if ($('versionNotes')) $('versionNotes').value = '';
+  if ($('versionBefore')) $('versionBefore').value = '';
+  if ($('versionAfter')) $('versionAfter').value = '';
+  if ($('versionLabel')) $('versionLabel').value = nextVersionLabel();
+  $('versionsStatus').textContent = Lc.versionSaved;
+  renderVersionsList();
+}
+function versionSummary(v) {
+  const Lc = L[lang] || L.en;
+  const src = [v.sourceDocuments && v.sourceDocuments.approved, v.sourceDocuments && v.sourceDocuments.retrieved, v.sourceDocuments && v.sourceDocuments.attached].filter(Boolean);
+  const bv = [v.brandVoice && v.brandVoice.tone, v.brandVoice && v.brandVoice.context, v.brandVoice && v.brandVoice.audience].filter(Boolean);
+  return [
+    versionMetaLine('🎛', Lc.versionParametersLabel, v.parameters),
+    versionMetaLine('🗣', Lc.versionBrandVoiceLabel, bv.join(' · ')),
+    versionMetaLine('🧩', Lc.versionExamplesLabel, v.exampleOutputs),
+    versionMetaLine('📚', Lc.versionSourcesLabel, src.join(' · ')),
+    versionMetaLine('✅', Lc.versionEvalLabel, v.evaluationCriteria),
+    versionMetaLine('➡', Lc.versionBeforeLabel, v.workflow && v.workflow.before),
+    versionMetaLine('⬅', Lc.versionAfterLabel, v.workflow && v.workflow.after),
+    versionMetaLine('📝', Lc.versionNotesLabel, v.notes)
+  ].join('');
+}
+function renderVersionsList() {
+  const el = $('versionsList');
+  if (!el) return;
+  const Lc = L[lang] || L.en;
+  if (!versionsState.length) {
+    el.innerHTML = '<div class="versions-empty">' + esc(Lc.versionEmpty) + '</div>';
+    return;
+  }
+  const sorted = versionsState.slice().sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+  el.innerHTML = sorted.map(v => {
+    const date = v.createdAt ? new Date(v.createdAt).toLocaleString(lang === 'en' ? 'en-US' : 'sr-RS') : '';
+    return '<div class="version-card" data-id="' + esc(v.id) + '">' +
+      '<div class="version-card-head">' +
+        '<span class="version-badge">' + esc(v.version || 'v?') + '</span>' +
+        '<span class="version-type">' + esc(v.typeName || v.type || '') + '</span>' +
+        '<span class="version-date">' + esc(date) + ' · ' + (v.tokens || 0) + ' tok</span>' +
+        '<span class="version-model">' + esc(v.modelLabel || v.model || '') + '</span>' +
+      '</div>' +
+      versionSummary(v) +
+      '<div class="version-block">📄 <b>' + esc(Lc.versionPromptLabel) + ':</b> <code>' + esc(String(v.prompt || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').slice(0, 260)) + '…</code></div>' +
+      '<div class="version-actions">' +
+        '<button class="primary" data-act="restore">↩ ' + esc(Lc.versionRestore) + '</button>' +
+        '<button class="secondary" data-act="copy">▣ ' + esc(Lc.versionCopy) + '</button>' +
+        '<button class="secondary" data-act="download">↓ ' + esc(Lc.versionDownload) + '</button>' +
+        '<button class="secondary" data-act="delete">🗑 ' + esc(Lc.versionDelete) + '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  el.querySelectorAll('.version-card').forEach(card => {
+    const id = card.dataset.id;
+    card.querySelectorAll('button[data-act]').forEach(btn => {
+      btn.onclick = () => versionAction(btn.dataset.act, id);
+    });
+  });
+}
+function versionAction(act, id) {
+  const v = versionsState.find(x => x.id === id);
+  if (!v) return;
+  const Lc = L[lang] || L.en;
+  if (act === 'restore') restoreVersion(v);
+  else if (act === 'copy') {
+    navigator.clipboard.writeText(v.prompt || '').then(() => {
+      $('versionsStatus').textContent = Lc.versionCopied;
+    }).catch(() => {});
+  } else if (act === 'download') downloadVersionFile(v);
+  else if (act === 'delete') {
+    versionsState = versionsState.filter(x => x.id !== id);
+    persistVersions();
+    renderVersionsList();
+  }
+}
+function restoreVersion(v) {
+  if (!v.type || !specs[v.type]) return;
+  const Lc = L[lang] || L.en;
+  active = v.type;
+  data[active] = JSON.parse(JSON.stringify(v.fields || {}));
+  mode = 'expert';
+  $('btnExpert').classList.add('on');
+  $('btnExpress').classList.remove('on');
+  hideVersionsModal();
+  setActiveTab('prompt');
+  render();
+  $('status').textContent = Lc.versionRestored;
+}
+function downloadVersionFile(v) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(v, null, 2)], { type: 'application/json' }));
+  a.download = (v.version || 'version') + '-' + (v.type || 'prompt') + '.json';
+  a.click();
+}
+function exportVersions() {
+  const Lc = L[lang] || L.en;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(versionsState, null, 2)], { type: 'application/json' }));
+  a.download = 'prompt-versions.json';
+  a.click();
+  $('versionsStatus').textContent = Lc.versionExported;
+}
+function importVersionsFile(file) {
+  const Lc = L[lang] || L.en;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const incoming = Array.isArray(parsed) ? parsed : [parsed];
+      const ids = new Set(versionsState.map(v => v.id));
+      incoming.forEach(v => {
+        if (v && v.id && !ids.has(v.id)) { versionsState.push(v); ids.add(v.id); }
+      });
+      persistVersions();
+      renderVersionsList();
+      $('versionsStatus').textContent = Lc.versionImported;
+    } catch (e) {
+      $('versionsStatus').textContent = Lc.versionImportFailed;
+    }
+  };
+  reader.readAsText(file);
+}
+function setupVersionEvents() {
+  if ($('navVersions')) $('navVersions').onclick = openVersionsModal;
+  if ($('btnSaveVersion')) $('btnSaveVersion').onclick = openVersionsModal;
+  if ($('btnSaveVersionPreview')) $('btnSaveVersionPreview').onclick = openVersionsModal;
+  if ($('btnVersionsClose')) $('btnVersionsClose').onclick = hideVersionsModal;
+  if ($('btnVersionSave')) $('btnVersionSave').onclick = saveCurrentVersion;
+  if ($('btnVersionsExport')) $('btnVersionsExport').onclick = exportVersions;
+  if ($('btnVersionsImport')) $('btnVersionsImport').onclick = () => $('versionsImportFile').click();
+  if ($('versionsImportFile')) $('versionsImportFile').onchange = (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) importVersionsFile(f);
+    e.target.value = '';
+  };
+  document.querySelectorAll('#versionsModal input, #versionsModal textarea').forEach(el => {
+    el.addEventListener('input', renderCapturePreview);
+  });
+  loadVersions();
+}
+
+/* ============================================================
    KEYBOARD SHORTCUTS
    ============================================================ */
 window.addEventListener('keydown', (e) => {
@@ -3725,10 +4371,12 @@ window.addEventListener('keydown', (e) => {
   // Escape: Close modals
   if (e.key === 'Escape') {
     hideModal();
+    hideVersionsModal();
   }
 });
 
 setupArenaEvents();
+setupVersionEvents();
 render();
 </script>
 
