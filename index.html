@@ -1897,7 +1897,7 @@ const tips = {
     sr: "Podešava brzinu govora (npr. 0.9 za smireniji/ozbiljniji ton, 1.1 za brži govor)."
   }
 };
-const common=[['model','select','gpt'],['answer','select','English'],['task','textarea',''],['role','text',''],['context','textarea',''],['format','select','Markdown'],['length','text','e.g., under 250 words']];
+const common=[['model','select','gpt'],['answer','select','English'],['task','textarea',''],['role','text',''],['context','textarea',''],['format','select','Markdown'],['length','text','e.g., under 250 words'],['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...']];
 const specs={
 general:{icon:'◈',name:['General prompt','Opšti prompt'],desc:['Fast, clear everyday task','Brz i jasan svakodnevni zadatak'],fields:[...common,['audience','text',''],['constraints','textarea','']]},
 business:{icon:'▤',name:['Business writing','Poslovno pisanje'],desc:['Reports, emails, documents','Izveštaji, imejlovi, dokumenti'],fields:[...common,['audience','text',''],['tone','text','Professional and direct'],['success','textarea','']]},
@@ -1905,7 +1905,7 @@ project:{icon:'◫',name:['Complex project','Složen projekat'],desc:['Sequenced
 creative:{icon:'✦',name:['Creative / brand','Kreativno / brend'],desc:['Voice, concepts, variants','Glas, koncepti, varijante'],fields:[...common,['tone','text',''],['audience','text',''],['success','textarea','Give 3 distinct variants']]},
 analysis:{icon:'◌',name:['Analysis / debugging','Analiza / debagovanje'],desc:['Logic, comparison, diagnosis','Logika, poređenje, dijagnostika'],fields:[...common,['constraints','textarea',''],['success','textarea','']]},
 fewshot:{icon:'≡',name:['Few-shot pattern','Few-shot obrazac'],desc:['Reliable structured output','Pouzdan strukturiran izlaz'],fields:[...common,['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...'],['success','textarea','']]},
-coding:{icon:'⌘',name:['Code edit','Izmena koda'],desc:['Cursor, Windsurf, Copilot','Cursor, Windsurf, Copilot'],fields:[['model','select','cursor'],['file','text','src/example.js'],['current','textarea',''],['desired','textarea',''],['scope','textarea','Only modify this file and component.'],['dont','textarea',''],['constraints','textarea','Language/framework and dependency limits'],['success','textarea','']]},
+coding:{icon:'⌘',name:['Code edit','Izmena koda'],desc:['Cursor, Windsurf, Copilot','Cursor, Windsurf, Copilot'],fields:[['model','select','cursor'],['file','text','src/example.js'],['current','textarea',''],['desired','textarea',''],['scope','textarea','Only modify this file and component.'],['dont','textarea',''],['constraints','textarea','Language/framework and dependency limits'],['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...'],['success','textarea','']]},
 agent:{icon:'⚙',name:['Autonomous agent','Autonomni agent'],desc:['Claude Code, Devin, CLI agents','Claude Code, Devin, CLI agenti'],fields:[['model','select','claudeCode'],['task','textarea',''],['environment','textarea','OS: Windows\nShell: PowerShell\nWorking directory: '],['current','textarea',''],['desired','textarea',''],['scope','textarea','Read and edit only the stated folder.'],['dont','textarea','Do not push, deploy, or delete files.'],['stop','textarea','Pause before deletion, new APIs, dependencies, or after 2 failed attempts.'],['success','textarea','']]},
 image:{icon:'◉',name:['Image generation','Generisanje slike'],desc:['Midjourney, DALL-E, Stable','Midjourney, DALL-E, Stable'],fields:[['model','select','midjourney'],['subject','text',''],['action','text',''],['setting','text',''],['style','text',''],['mood','text',''],['lighting','text',''],['palette','text',''],['composition','text',''],['aspect','text','16:9'],['negative','textarea','blurry, watermark, distortion']]},
 imageEdit:{icon:'◐',name:['Image edit','Izmena slike'],desc:['Change one thing, preserve rest','Izmeni jedno, sačuvaj ostalo'],fields:[['model','select','dalle'],['reference','textarea',''],['change','textarea',''],['constraints','textarea','Keep style, lighting, and all listed elements unchanged.'],['negative','textarea','']]},
@@ -2336,8 +2336,8 @@ function buildLocalPrompt(f){
   ];
 }
 
-function buildRaw(){
-  let m=val('model')||'gpt',task=val('task')||val('desired')||val('subject')||'[Describe the task]';
+function buildRaw(customModel){
+  let m=customModel||val('model')||'gpt',task=val('task')||val('desired')||val('subject')||'[Describe the task]';
   let a=[];
   if(active==='coding') {
     a=[
@@ -2347,6 +2347,7 @@ function buildRaw(){
       wrap('scope', val('scope') ? 'Scope: '+val('scope') : ''),
       wrap('dont', val('dont') ? 'Do NOT touch: '+val('dont') : ''),
       wrap('constraints', val('constraints') ? 'Constraints: '+val('constraints') : ''),
+      wrap('examples', examples()),
       wrap('success', val('success') ? 'Done When: '+val('success') : '')
     ].filter(Boolean);
   } else if(active==='agent') {
@@ -2549,6 +2550,16 @@ function setLang(l){
   $('tabResponse').textContent = q.tabResponse;
   $('btnCopyResponse').textContent = q.copyResponse;
   
+  
+  if ($('arenaNavT')) $('arenaNavT').textContent = q.arenaNav || 'ARENA (A/B)';
+  if ($('arenaPillT')) $('arenaPillT').textContent = q.arenaPill || 'ARENA';
+  if ($('arenaTitleT')) $('arenaTitleT').textContent = q.arenaTitle || 'SIDE-BY-SIDE MODEL ARENA';
+  if ($('arenaDescT')) $('arenaDescT').textContent = q.arenaDesc || 'Compare how your prompt compiles and executes across two distinct AI models.';
+  if ($('arenaRunBothT')) $('arenaRunBothT').textContent = q.arenaRunBoth || 'RUN BOTH';
+  if ($('arenaCopyBothT')) $('arenaCopyBothT').textContent = q.arenaCopyBoth || 'COPY BOTH';
+  if (typeof updatePromptQuality === 'function') updatePromptQuality();
+  if (typeof arenaActive !== 'undefined' && arenaActive && typeof updateArena === 'function') updateArena();
+
   document.querySelectorAll('[data-lang]').forEach(x=>x.classList.toggle('on',x.dataset.lang===l));
   render();
 }
@@ -3221,6 +3232,358 @@ $('clear').onclick=()=>{
   data[active]={};$('status').textContent='';setActiveTab('prompt');render()
 };
 document.querySelectorAll('[data-lang]').forEach(x=>x.onclick=()=>setLang(x.dataset.lang));
+
+/* ============================================================
+   PROMPT QUALITY LINTER & HEALTH SCORE
+   ============================================================ */
+function calculatePromptQuality() {
+  const currentTask = (val('task') || val('desired') || val('subject') || val('change') || val('trigger') || val('script') || '').trim();
+  const currentRole = (val('role') || '').trim();
+  const currentConstraints = (val('constraints') || val('dont') || val('stop') || val('negative') || '').trim();
+  const currentFormat = (val('format') || val('aspect') || val('cut') || val('mapping') || val('speechrate') || '').trim();
+  const currentContext = (val('context') || val('steps') || val('examples') || val('reference') || val('sources') || val('environment') || val('current') || '').trim();
+
+  let score = 0;
+  const isVisual = ['image', 'imageEdit', 'comfy', 'video'].includes(active);
+
+  // 1. Task/Objective (30%)
+  const hasTask = currentTask.length > 0;
+  if (currentTask.length > 25) score += 30;
+  else if (hasTask) score += 15;
+
+  // 2. Role / Perspective (20%)
+  let hasRole = false;
+  if (isVisual) {
+    hasRole = (val('style') || val('mood') || '').trim().length > 0;
+    if (hasRole) score += 20;
+  } else {
+    hasRole = currentRole.length > 3;
+    if (hasRole) score += 20;
+  }
+
+  // 3. Constraints / Guardrails (20%)
+  const hasConstraints = currentConstraints.length > 3;
+  if (hasConstraints) score += 20;
+
+  // 4. Output Format (15%)
+  const hasFormat = currentFormat.length > 0;
+  if (hasFormat) score += 15;
+
+  // 5. Context / Examples (15%)
+  const hasContext = currentContext.length > 8;
+  if (hasContext) score += 15;
+
+  const q = L[lang] || L.en;
+  return {
+    score: Math.min(100, score),
+    checks: [
+      { key: 'task', label: q.qualityRuleTask, isMet: hasTask, targetField: active === 'coding' ? 'f-desired' : (isVisual ? 'f-subject' : 'f-task') },
+      { key: 'role', label: isVisual ? (lang === 'en' ? 'Visual Style' : 'Vizuelni stil') : q.qualityRuleRole, isMet: hasRole, targetField: isVisual ? 'f-style' : 'f-role' },
+      { key: 'constraints', label: q.qualityRuleConstraints, isMet: hasConstraints, targetField: active === 'coding' ? 'f-dont' : (isVisual ? 'f-negative' : 'f-constraints') },
+      { key: 'format', label: q.qualityRuleFormat, isMet: hasFormat, targetField: isVisual ? 'f-aspect' : 'f-format' },
+      { key: 'context', label: q.qualityRuleContext, isMet: hasContext, targetField: active === 'coding' ? 'f-current' : (isVisual ? 'f-setting' : 'f-context') }
+    ]
+  };
+}
+
+function updatePromptQuality() {
+  const card = $('qualityCard');
+  if (!card) return;
+
+  if (mode === 'autodetect') {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const q = L[lang] || L.en;
+  const { score, checks } = calculatePromptQuality();
+
+  const scoreBadge = $('qualityScoreBadge');
+  const barFill = $('qualityBarFill');
+  const verdict = $('qualityVerdict');
+  const chipsEl = $('qualityChips');
+  const titleEl = $('qualityTitleT');
+
+  if (titleEl) titleEl.textContent = q.qualityTitle;
+  if (scoreBadge) scoreBadge.textContent = score + '%';
+  if (barFill) {
+    barFill.style.width = score + '%';
+    if (score < 40) {
+      barFill.style.background = 'linear-gradient(90deg, #ef4444, #f97316)';
+      if (scoreBadge) { scoreBadge.style.color = '#ef4444'; scoreBadge.style.background = 'rgba(239, 68, 68, 0.15)'; }
+      if (verdict) { verdict.textContent = q.qualityVerdictDraft; verdict.style.color = '#f87171'; }
+    } else if (score < 70) {
+      barFill.style.background = 'linear-gradient(90deg, #f59e0b, #eab308)';
+      if (scoreBadge) { scoreBadge.style.color = '#f59e0b'; scoreBadge.style.background = 'rgba(245, 158, 11, 0.15)'; }
+      if (verdict) { verdict.textContent = q.qualityVerdictBasic; verdict.style.color = '#fbbf24'; }
+    } else if (score < 90) {
+      barFill.style.background = 'linear-gradient(90deg, #6366f1, #3b82f6)';
+      if (scoreBadge) { scoreBadge.style.color = '#6366f1'; scoreBadge.style.background = 'rgba(99, 102, 241, 0.15)'; }
+      if (verdict) { verdict.textContent = q.qualityVerdictSolid; verdict.style.color = '#818cf8'; }
+    } else {
+      barFill.style.background = 'linear-gradient(90deg, #10b981, #00ffcc)';
+      if (scoreBadge) { scoreBadge.style.color = '#10b981'; scoreBadge.style.background = 'rgba(16, 185, 129, 0.15)'; }
+      if (verdict) { verdict.textContent = q.qualityVerdictOptimal; verdict.style.color = '#34d399'; }
+    }
+  }
+
+  if (chipsEl) {
+    chipsEl.innerHTML = checks.map(c => {
+      const cls = c.isMet ? 'done' : 'missing';
+      const text = c.isMet ? ('✓ ' + esc(c.label)) : (q.qualityAddPrefix + esc(c.label));
+      return '<button type="button" class="quality-chip ' + cls + '" data-target="' + c.targetField + '">' + text + '</button>';
+    }).join('');
+
+    chipsEl.querySelectorAll('.quality-chip').forEach(chip => {
+      chip.onclick = () => {
+        const targetId = chip.dataset.target;
+        let el = $(targetId);
+        if (!el && mode === 'express') {
+          $('btnExpert').click();
+          el = $(targetId);
+        }
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+          el.style.boxShadow = '0 0 0 2px var(--accent)';
+          setTimeout(() => { el.style.boxShadow = ''; }, 1500);
+        }
+      };
+    });
+  }
+}
+
+/* ============================================================
+   MODEL ARENA (SIDE-BY-SIDE A/B COMPARISON)
+   ============================================================ */
+let arenaActive = false;
+let arenaModelA = 'claude';
+let arenaModelB = 'gpt';
+
+function initArenaSelectors() {
+  const selectA = $('arenaSelectA');
+  const selectB = $('arenaSelectB');
+  if (!selectA || !selectB) return;
+
+  const modelEntries = Object.entries(models);
+  if (selectA.children.length === 0) {
+    selectA.innerHTML = modelEntries.map(([k, v]) => '<option value="' + k + '">' + v + '</option>').join('');
+    selectA.value = arenaModelA;
+    selectA.onchange = () => {
+      arenaModelA = selectA.value;
+      updateArena();
+    };
+  }
+  if (selectB.children.length === 0) {
+    selectB.innerHTML = modelEntries.map(([k, v]) => '<option value="' + k + '">' + v + '</option>').join('');
+    selectB.value = arenaModelB;
+    selectB.onchange = () => {
+      arenaModelB = selectB.value;
+      updateArena();
+    };
+  }
+}
+
+function toggleArena(forceState) {
+  arenaActive = (typeof forceState === 'boolean') ? forceState : !arenaActive;
+  const appEl = document.querySelector('.app');
+  const arenaContainer = $('arenaContainer');
+  const normalOutput = $('output');
+  const responseOutput = $('response-output');
+  const previewTabsContainer = document.querySelector('.preview-tabs-container');
+  const normalPreviewActions = document.querySelector('.preview-actions');
+  const noteEl = $('note');
+
+  if (appEl) appEl.classList.toggle('arena-mode', arenaActive);
+  if ($('btnToggleArena')) $('btnToggleArena').classList.toggle('on', arenaActive);
+  if ($('navArena')) $('navArena').classList.toggle('on', arenaActive);
+  if ($('navBuilder')) $('navBuilder').classList.toggle('on', !arenaActive);
+
+  if (arenaActive) {
+    initArenaSelectors();
+    if (arenaContainer) arenaContainer.style.display = 'flex';
+    if (normalOutput) normalOutput.style.display = 'none';
+    if (responseOutput) responseOutput.style.display = 'none';
+    if (previewTabsContainer) previewTabsContainer.style.display = 'none';
+    if (normalPreviewActions) normalPreviewActions.style.display = 'none';
+    if (noteEl) noteEl.style.display = 'none';
+    updateArena();
+  } else {
+    if (arenaContainer) arenaContainer.style.display = 'none';
+    if (normalOutput) normalOutput.style.display = 'block';
+    if (previewTabsContainer) previewTabsContainer.style.display = '';
+    if (normalPreviewActions) normalPreviewActions.style.display = '';
+    if (noteEl) noteEl.style.display = '';
+    setActiveTab('prompt');
+  }
+}
+
+function updateArena() {
+  if (!arenaActive) return;
+  initArenaSelectors();
+
+  // Model A
+  const { out: rawA } = buildRaw(arenaModelA);
+  const famA = familyOf(arenaModelA);
+  const plainA = rawA.replace(/<[^>]+>/g, '');
+  const finalA = compact ? collapseBlankLines(compactText(plainA)) : plainA;
+  const tokensA = countTokens(finalA, famA);
+  if ($('arenaOutputA')) $('arenaOutputA').textContent = finalA;
+  if ($('arenaTokenA')) $('arenaTokenA').textContent = tokensA + ' tok';
+
+  // Model B
+  const { out: rawB } = buildRaw(arenaModelB);
+  const famB = familyOf(arenaModelB);
+  const plainB = rawB.replace(/<[^>]+>/g, '');
+  const finalB = compact ? collapseBlankLines(compactText(plainB)) : plainB;
+  const tokensB = countTokens(finalB, famB);
+  if ($('arenaOutputB')) $('arenaOutputB').textContent = finalB;
+  if ($('arenaTokenB')) $('arenaTokenB').textContent = tokensB + ' tok';
+}
+
+function setArenaTab(side, tab) {
+  const isPrompt = tab === 'prompt';
+  const outBox = $('arenaOutput' + side);
+  const respBox = $('arenaResponse' + side);
+  const tabPrompt = $('arenaTabPrompt' + side);
+  const tabResp = $('arenaTabResponse' + side);
+
+  if (tabPrompt) tabPrompt.classList.toggle('on', isPrompt);
+  if (tabResp) tabResp.classList.toggle('on', !isPrompt);
+  if (outBox) outBox.style.display = isPrompt ? 'block' : 'none';
+  if (respBox) respBox.style.display = isPrompt ? 'none' : 'block';
+}
+
+async function runArenaSide(side) {
+  const modelKey = side === 'A' ? arenaModelA : arenaModelB;
+  const promptText = ($('arenaOutput' + side)?.textContent || '').trim();
+  if (!promptText) return;
+
+  const apiKey = localStorage.getItem('nc_api_key');
+  const provider = localStorage.getItem('nc_api_provider');
+  const hasKey = apiKey && apiKey.trim().length > 0;
+
+  setArenaTab(side, 'response');
+
+  if (!hasKey && provider !== 'custom') {
+    runExternal(promptText, modelKey);
+    const respText = $('arenaResponseText' + side);
+    if (respText) {
+      respText.innerHTML = '<div style="padding:10px; color:var(--text-muted); font-size:12px;">' +
+        '↗ ' + (lang === 'en' ? 'Prompt copied! Opened in ' : 'Prompt je kopiran! Otvaram ') + (models[modelKey] || modelKey) + '.' +
+        '</div>';
+    }
+    return;
+  }
+
+  const loader = $('arenaLoader' + side);
+  const respText = $('arenaResponseText' + side);
+  if (loader) loader.style.display = 'flex';
+  if (respText) respText.textContent = '';
+
+  try {
+    const customUrl = localStorage.getItem('nc_api_url');
+    const modelId = localStorage.getItem('nc_api_model');
+    const systemText = val('role');
+
+    if (provider === 'cloudflare') {
+      const cfId = localStorage.getItem('nc_cf_account_id');
+      await callCloudflare(cfId, apiKey, modelId, promptText, respText);
+    } else if (provider === 'gemini') {
+      await callGemini(apiKey, modelId, customUrl, promptText, respText, systemText);
+    } else if (provider === 'anthropic') {
+      await callAnthropic(apiKey, modelId, customUrl, promptText, respText, systemText);
+    } else {
+      await callOpenAICompatible(provider || 'openai', apiKey, modelId, customUrl, promptText, respText, systemText);
+    }
+  } catch (err) {
+    if (respText) respText.innerHTML = '<span style="color:var(--accent);">Error: ' + esc(err.message) + '</span>';
+  } finally {
+    if (loader) loader.style.display = 'none';
+  }
+}
+
+function setupArenaEvents() {
+  if ($('btnToggleArena')) $('btnToggleArena').onclick = () => toggleArena();
+  if ($('navArena')) $('navArena').onclick = () => toggleArena(true);
+  if ($('navBuilder')) {
+    const origBuilderClick = $('navBuilder').onclick;
+    $('navBuilder').onclick = () => {
+      if (arenaActive) toggleArena(false);
+      if (origBuilderClick) origBuilderClick();
+    };
+  }
+
+  if ($('arenaTabPromptA')) $('arenaTabPromptA').onclick = () => setArenaTab('A', 'prompt');
+  if ($('arenaTabResponseA')) $('arenaTabResponseA').onclick = () => setArenaTab('A', 'response');
+  if ($('arenaTabPromptB')) $('arenaTabPromptB').onclick = () => setArenaTab('B', 'prompt');
+  if ($('arenaTabResponseB')) $('arenaTabResponseB').onclick = () => setArenaTab('B', 'response');
+
+  if ($('btnArenaCopyA')) $('btnArenaCopyA').onclick = async () => {
+    const text = $('arenaOutputA')?.textContent || '';
+    if (text) { await navigator.clipboard.writeText(text); $('status').textContent = lang === 'en' ? '✓ Copied Model A prompt!' : '✓ Model A prompt kopiran!'; }
+  };
+  if ($('btnArenaCopyB')) $('btnArenaCopyB').onclick = async () => {
+    const text = $('arenaOutputB')?.textContent || '';
+    if (text) { await navigator.clipboard.writeText(text); $('status').textContent = lang === 'en' ? '✓ Copied Model B prompt!' : '✓ Model B prompt kopiran!'; }
+  };
+
+  if ($('btnArenaOpenA')) $('btnArenaOpenA').onclick = () => {
+    const text = $('arenaOutputA')?.textContent || '';
+    runExternal(text, arenaModelA);
+  };
+  if ($('btnArenaOpenB')) $('btnArenaOpenB').onclick = () => {
+    const text = $('arenaOutputB')?.textContent || '';
+    runExternal(text, arenaModelB);
+  };
+
+  if ($('btnArenaRunA')) $('btnArenaRunA').onclick = () => runArenaSide('A');
+  if ($('btnArenaRunB')) $('btnArenaRunB').onclick = () => runArenaSide('B');
+
+  if ($('btnArenaRunBoth')) $('btnArenaRunBoth').onclick = () => {
+    runArenaSide('A');
+    runArenaSide('B');
+  };
+
+  if ($('btnArenaCopyBoth')) $('btnArenaCopyBoth').onclick = async () => {
+    const pA = $('arenaOutputA')?.textContent || '';
+    const pB = $('arenaOutputB')?.textContent || '';
+    const combined = '=== MODEL A (' + (models[arenaModelA] || arenaModelA) + ') ===\n' + pA + '\n\n=== MODEL B (' + (models[arenaModelB] || arenaModelB) + ') ===\n' + pB;
+    await navigator.clipboard.writeText(combined);
+    $('status').textContent = L[lang]?.arenaCopiedBoth || '✓ Copied both prompts!';
+  };
+}
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+   ============================================================ */
+window.addEventListener('keydown', (e) => {
+  // Ctrl+Enter or Cmd+Enter: Run prompt
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    if (arenaActive) {
+      $('btnArenaRunBoth')?.click();
+    } else {
+      $('run')?.click();
+    }
+  }
+  // Ctrl+Shift+C or Cmd+Shift+C: Copy prompt
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+    e.preventDefault();
+    if (arenaActive) {
+      $('btnArenaCopyBoth')?.click();
+    } else {
+      $('copy')?.click();
+    }
+  }
+  // Escape: Close modals
+  if (e.key === 'Escape') {
+    hideModal();
+  }
+});
+
+setupArenaEvents();
 render();
 </script>
 
