@@ -9,6 +9,9 @@ assert.match(html, /href="#main-content"/, 'The page needs a skip link.');
 assert.match(html, /for="apiKey"/, 'The API key field needs a label.');
 assert.match(html, /btnApiTest/, 'The app needs the connection-test button.');
 assert.match(html, /showAdvancedTemplates/, 'The app needs the simple template view.');
+assert.match(html, /id="qualityCard"/, 'The app needs the prompt quality linter card.');
+assert.match(html, /id="navArena"/, 'The app needs the model arena navigation button.');
+assert.match(html, /id="btnArenaRunBoth"/, 'The app needs the arena dual-run button.');
 
 assert.match(worker, /request\.method === 'OPTIONS'/, 'Worker must support the connection check.');
 assert.match(worker, /url\.pathname === '\/api\/run'/, 'Worker must expose the run endpoint.');

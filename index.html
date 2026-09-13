@@ -988,6 +988,319 @@ select option {
     padding: 8px 10px !important;
   }
 }
+
+/* --- PROMPT QUALITY LINTER --- */
+.quality-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+.quality-card:hover {
+  border-color: var(--panel-border-hover);
+}
+.quality-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.quality-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+}
+.quality-title-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.quality-score-badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+  border: 1px solid currentColor;
+  transition: all 0.3s ease;
+}
+.quality-verdict {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.quality-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.quality-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ec4899, #6366f1, #10b981);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+.quality-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.quality-chip {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.quality-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+.quality-chip.done {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+}
+.quality-chip.missing {
+  border-color: rgba(236, 72, 153, 0.3);
+  color: #f472b6;
+}
+.quality-chip.missing:hover {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: var(--accent);
+}
+
+/* --- MODEL ARENA (SIDE-BY-SIDE) --- */
+.arena-nav-btn {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  border: 1px solid var(--panel-border);
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.arena-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  border-color: var(--panel-border-hover);
+}
+.arena-nav-btn.on {
+  border-color: var(--primary);
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+.arena-toggle-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.arena-toggle-pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-main);
+}
+.arena-toggle-pill.on {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+.app.arena-mode {
+  grid-template-columns: 240px minmax(360px, 0.9fr) minmax(580px, 1.6fr);
+}
+.arena-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+.arena-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.arena-topbar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.arena-topbar-info strong {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--text-main);
+}
+.arena-topbar-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.arena-topbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.arena-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.arena-panel {
+  display: flex;
+  flex-direction: column;
+  background: rgba(9, 9, 11, 0.5);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 12px;
+  gap: 10px;
+}
+.arena-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.arena-selector-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.arena-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+.arena-tag.tag-a {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+.arena-tag.tag-b {
+  background: rgba(236, 72, 153, 0.2);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.arena-select {
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-main);
+  flex: 1;
+}
+.arena-panel-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.arena-btn-sm {
+  padding: 5px 10px !important;
+  font-size: 11px !important;
+  border-radius: 4px !important;
+}
+.arena-output-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--panel-border);
+  margin-top: 2px;
+}
+.arena-tab-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.arena-tab-btn.on {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.arena-output-box, .arena-response-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 12px;
+  min-height: 280px;
+  max-height: 480px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.arena-response-box {
+  color: #e4e4e7;
+}
+.arena-response-loader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+@media(max-width: 1300px) {
+  .app.arena-mode {
+    grid-template-columns: 240px 1fr;
+  }
+  .app.arena-mode .preview {
+    grid-column: 1 / -1;
+  }
+}
+@media(max-width: 900px) {
+  .arena-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -1013,6 +1326,7 @@ select option {
 </header>
 <nav class="nav" aria-label="Main navigation">
   <button class="on" id="navBuilder">▣ CONTEXT BUILDER</button>
+  <button class="arena-nav-btn" id="navArena" title="Compare prompts and execution between two models">⚖ <span id="arenaNavT">ARENA (A/B)</span></button>
   <button id="clear">↺ <span id="clearT">CLEAR ACTIVE FORM</span></button>
 </nav>
 <main class="app" id="main-content">
@@ -1037,6 +1351,22 @@ select option {
         </div>
       </div>
     </div>
+    
+    <!-- Prompt Quality Linter -->
+    <div class="quality-card" id="qualityCard">
+      <div class="quality-header">
+        <div class="quality-meta">
+          <span class="quality-title-label" id="qualityTitleT">PROMPT QUALITY</span>
+          <span class="quality-score-badge" id="qualityScoreBadge">0%</span>
+          <span class="quality-verdict" id="qualityVerdict">Draft</span>
+        </div>
+        <div class="quality-bar-track">
+          <div class="quality-bar-fill" id="qualityBarFill" style="width: 0%;"></div>
+        </div>
+      </div>
+      <div class="quality-chips" id="qualityChips"></div>
+    </div>
+
     <div class="form" id="fields"></div>
     <div class="actions">
       <button class="primary" id="copy">▣ <span id="copyT">COPY PROMPT</span></button>
@@ -1055,6 +1385,7 @@ select option {
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <div class="compact-toggle-container">
           <span id="compactToggleLabel">⚡</span>
+          <button class="arena-toggle-pill" id="btnToggleArena" title="Side-by-side prompt comparison between two models">⚖ <span id="arenaPillT">ARENA</span></button>
           <button class="compact-btn" id="btnCompact" title="Mechanically strip filler words and collapse blank lines to reduce token count">COMPACT</button>
           <div class="savings-pill" id="savingsPill" style="display:none;" title="Exact percentage of tokens saved by compact mode">
             <span class="savings-pct" id="savingsPctVal">-0%</span>
@@ -1104,6 +1435,80 @@ select option {
           </p>
         </div>
         <div id="response-output-text"></div>
+      </div>
+      <!-- Model Arena Container -->
+      <div id="arenaContainer" class="arena-container" style="display: none;">
+        <div class="arena-topbar">
+          <div class="arena-topbar-info">
+            <strong id="arenaTitleT">SIDE-BY-SIDE MODEL ARENA</strong>
+            <span class="arena-topbar-desc" id="arenaDescT">Compare how your prompt compiles and executes across two distinct AI models.</span>
+          </div>
+          <div class="arena-topbar-actions">
+            <button class="primary arena-btn-sm" id="btnArenaRunBoth">⚡ <span id="arenaRunBothT">RUN BOTH</span></button>
+            <button class="secondary arena-btn-sm" id="btnArenaCopyBoth">▣ <span id="arenaCopyBothT">COPY BOTH</span></button>
+          </div>
+        </div>
+        <div class="arena-grid">
+          <!-- Model A Panel -->
+          <div class="arena-panel" id="arenaPanelA">
+            <div class="arena-panel-head">
+              <div class="arena-selector-wrap">
+                <span class="arena-tag tag-a">A</span>
+                <select id="arenaSelectA" class="arena-select"></select>
+              </div>
+              <span class="badge tokens" id="arenaTokenA">0 tok</span>
+            </div>
+            <div class="arena-panel-actions">
+              <button class="secondary arena-btn-sm" id="btnArenaCopyA">▣ <span id="arenaCopyAT">Copy</span></button>
+              <button class="primary arena-btn-sm" id="btnArenaOpenA">↗ <span id="arenaOpenAT">Open</span></button>
+              <button class="primary arena-btn-sm" id="btnArenaRunA">⚡ <span id="arenaRunAT">Run</span></button>
+            </div>
+            <div class="arena-output-tabs">
+              <button class="arena-tab-btn on" id="arenaTabPromptA">Prompt A</button>
+              <button class="arena-tab-btn" id="arenaTabResponseA">Response A</button>
+            </div>
+            <div class="arena-output-box" id="arenaOutputA"></div>
+            <div class="arena-response-box" id="arenaResponseA" style="display:none;">
+              <div class="arena-response-loader" id="arenaLoaderA" style="display:none;">
+                <div class="loader-dot"></div>
+                <div class="loader-dot"></div>
+                <div class="loader-dot"></div>
+                <span id="arenaLoaderTextA">Generating...</span>
+              </div>
+              <div id="arenaResponseTextA"></div>
+            </div>
+          </div>
+
+          <!-- Model B Panel -->
+          <div class="arena-panel" id="arenaPanelB">
+            <div class="arena-panel-head">
+              <div class="arena-selector-wrap">
+                <span class="arena-tag tag-b">B</span>
+                <select id="arenaSelectB" class="arena-select"></select>
+              </div>
+              <span class="badge tokens" id="arenaTokenB">0 tok</span>
+            </div>
+            <div class="arena-panel-actions">
+              <button class="secondary arena-btn-sm" id="btnArenaCopyB">▣ <span id="arenaCopyBT">Copy</span></button>
+              <button class="primary arena-btn-sm" id="btnArenaOpenB">↗ <span id="arenaOpenBT">Open</span></button>
+              <button class="primary arena-btn-sm" id="btnArenaRunB">⚡ <span id="arenaRunBT">Run</span></button>
+            </div>
+            <div class="arena-output-tabs">
+              <button class="arena-tab-btn on" id="arenaTabPromptB">Prompt B</button>
+              <button class="arena-tab-btn" id="arenaTabResponseB">Response B</button>
+            </div>
+            <div class="arena-output-box" id="arenaOutputB"></div>
+            <div class="arena-response-box" id="arenaResponseB" style="display:none;">
+              <div class="arena-response-loader" id="arenaLoaderB" style="display:none;">
+                <div class="loader-dot"></div>
+                <div class="loader-dot"></div>
+                <div class="loader-dot"></div>
+                <span id="arenaLoaderTextB">Generating...</span>
+              </div>
+              <div id="arenaResponseTextB"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>

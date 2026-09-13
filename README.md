@@ -70,6 +70,20 @@ Have a messy, unstructured idea? Simply describe your task in plain natural lang
 ### 6. 🌐 100% Bilingual Interface
 Seamlessly toggle between **English** and **Serbian (Srpski)** with one click. Every label, tooltip, placeholder, error message, and generated prefix is fully localized.
 
+### 7. ⚖️ Model Arena (Side-by-Side A/B Testing)
+- **Dual-Model Split View**: Instantly compare how your prompt compiles across two distinct AI models side-by-side (e.g. Anthropic XML tags vs. OpenAI Markdown structure).
+- **Simultaneous Token & Cost Analysis**: Compare exact token counts and formatting differences between Model A and Model B in real time.
+- **Dual Execution**: Run both models simultaneously in-console or open both in their respective web applications with a single click.
+
+### 8. 🩺 Prompt Quality Linter & Live Health Score
+- **Dynamic 0–100% Quality Score**: Automatically evaluates your prompt against 5 essential prompt engineering pillars: Objective clarity, Persona/Role anchoring, Negative constraints & guardrails, Output format, and Context/Demonstrations.
+- **Interactive Action Chips**: Visual chips highlight missing elements (e.g., `+ Add Constraints`). Clicking any chip automatically jumps to and highlights the target field.
+
+### 9. ⌨️ Developer Keyboard Shortcuts
+- `Ctrl + Enter` / `Cmd + Enter`: Run prompt (in-console or open in model).
+- `Ctrl + Shift + C`: Copy compiled prompt.
+- `Esc`: Close modal dialogs.
+
 ---
 
 ## 🔒 Security & Privacy (BYOK)
