@@ -1346,7 +1346,7 @@ select option {
           <span id="modeToggleLabel">Mode:</span>
           <div class="mode-toggle-buttons">
             <button class="mode-btn on" id="btnExpress" title="Show only the essential fields for a fast prompt">Quick</button>
-            <button class="mode-btn" id="btnExpert" title="Show every field with inline explanations of what each one does">Guided</button>
+            <button class="mode-btn" id="btnExpert" title="Show every field with inline explanations of what each one does">Guided/Extended</button>
           </div>
         </div>
       </div>
@@ -1585,7 +1585,7 @@ const L={
     decompileNoInput:'Paste the original prompt first.',
     modeToggleLabel:'FIELDS:',
     express:'Quick',
-    expert:'Guided',
+    expert:'Guided/Extended',
     expressTitle:'Show only the essential fields for a fast prompt',
     expertTitle:'Show every field with inline explanations of what each one does',
     compactLabel:'COMPACT',
@@ -1653,7 +1653,7 @@ const L={
     decompileNoInput:'Prvo nalepi originalni prompt.',
     modeToggleLabel:'POLJA:',
     express:'Brzo',
-    expert:'Vođeno',
+    expert:'Vođeno/Prošireno',
     expressTitle:'Prikazuje samo osnovna polja za brz prompt',
     expertTitle:'Prikazuje sva polja uz objašnjenje šta svako od njih radi',
     compactLabel:'SAŽMI',
@@ -1705,9 +1705,59 @@ const L={
     openInExternalApp:'Otvori u veb aplikaciji'
   }
 };
-const placeholder={role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
-const label={model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora']};
+const placeholder={
+  tone:['e.g. Professional, authoritative, direct, and concise','npr. Profesionalan, autoritativan, direktan i sažet'],
+  success:['e.g. 1. Solves the root issue 2. Matches exact output format 3. No regression in tests','npr. 1. Rešava suštinski problem 2. U potpunosti prati format 3. Svi testovi prolaze'],
+  edgeCases:['e.g. If input is empty, null, or malformed: return { error: "INVALID_INPUT" } and suggest corrective action.','npr. Ako je ulaz prazan ili neispravan: vrati { error: "INVALID_INPUT" } i navedi uputstvo za ispravku.'],
+  terminology:['e.g. Use standard technical terminology (e.g. idempotency, payload, async). Do NOT translate English technical terms.','npr. Koristi standardnu stručnu terminologiju. Ne prevodi engleske tehničke nazive i biblioteke.'],
+  negativeConstraints:['e.g. NEVER make assumptions. Do NOT use deprecated packages. Do NOT include conversational filler like "Sure, I can help".','npr. NIKADA ne pretpostavljaj bez provere. NE koristi zastarele biblioteke. NE dodaj konverzacijska ćaskanja.'],role:['e.g. Auto mechanic','npr. Automehaničar'],task:['e.g. Describe the task you want to accomplish with all important details...','npr. Opiši zadatak koji želiš da izvršiš sa svim važnim detaljima...'],context:['e.g. I work in an auto repair shop and want to improve the vehicle intake process...','npr. Radim u autoservisu i želim da unapredim proces prijema vozila...'],audience:['e.g. Beginners with no technical experience','npr. Početnici bez tehničkog iskustva'],length:['e.g. Under 500 words','npr. Do 500 reči'],tone:['e.g. Professional, clear and easy to understand','npr. Profesionalan, jasan i lako razumljiv'],constraints:['e.g. Use simple language and do not suggest expensive tools.','npr. Koristi jednostavan jezik i ne predlaži skupe alate.'],success:['e.g. The answer provides clear steps that a beginner can follow.','npr. Odgovor sadrži jasne korake koje početnik može da prati.'],steps:['e.g. 1. Analyze the problem 2. Explain the solution 3. Provide the steps','npr. 1. Analiziraj problem 2. Objasni rešenje 3. Navedi korake'],examples:['e.g. INPUT: Describe a car problem => OUTPUT: Provide a diagnostic checklist','npr. ULAZ: Opiši problem sa automobilom => IZLAZ: Navedi listu koraka za dijagnostiku'],file:['e.g. src/components/Header.js','npr. src/components/Header.js'],current:['e.g. The button currently opens the form but does not save the result.','npr. Dugme trenutno otvara obrazac, ali ne čuva rezultat.'],desired:['e.g. Make the button save the generated result.','npr. Omogući da dugme sačuva generisani rezultat.'],scope:['e.g. Only modify the existing component.','npr. Izmeni samo postojeću komponentu.'],dont:['e.g. Do not change the existing layout or dependencies.','npr. Ne menjaj postojeći raspored niti zavisnosti.'],stop:['e.g. Stop if the requested change requires a new dependency.','npr. Zaustavi se ako je za izmenu potrebna nova zavisnost.'],environment:['e.g. Windows, PowerShell, existing project folder','npr. Windows, PowerShell, postojeći folder projekta'],subject:['e.g. A professional auto mechanic in a modern workshop','npr. Profesionalni automehaničar u modernom servisu'],action:['e.g. Inspecting an engine while explaining the problem','npr. Pregleda motor i objašnjava problem'],setting:['e.g. Modern auto repair workshop','npr. Moderna automehaničarska radionica'],style:['e.g. Realistic professional photography','npr. Realistična profesionalna fotografija'],mood:['e.g. Professional and focused','npr. Profesionalno i fokusirano'],lighting:['e.g. Natural workshop lighting','npr. Prirodno osvetljenje radionice'],palette:['e.g. Dark blue, gray and metallic tones','npr. Tamnoplavi, sivi i metalik tonovi'],composition:['e.g. Medium shot, subject centered','npr. Srednji kadar, subjekat u centru'],aspect:['e.g. 16:9','npr. 16:9'],negative:['e.g. blurry, distorted, low quality, watermark','npr. mutno, deformisano, loš kvalitet, vodeni žig'],reference:['e.g. Preserve the original person\'s face, clothing and lighting.','npr. Sačuvaj lice osobe, odeću i osvetljenje sa originalne slike.'],change:['e.g. Change only the background and preserve everything else.','npr. Promeni samo pozadinu i sačuvaj sve ostalo.'],duration:['e.g. 8 seconds','npr. 8 sekundi'],camera:['e.g. Slow camera movement toward the subject','npr. Sporo približavanje kamere subjektu'],cut:['e.g. One continuous shot','npr. Jedan neprekidan kadar'],sources:['e.g. Official documentation and reputable industry sources','npr. Zvanična dokumentacija i pouzdani izvori iz industrije'],trigger:['e.g. Gmail when a new email arrives','npr. Gmail kada stigne nova poruka'],actionapp:['e.g. Google Sheets - add a new row','npr. Google Sheets - dodaj novi red'],mapping:['e.g. Email sender -> Name, Email subject -> Subject','npr. Pošiljalac imejla -> Ime, Naslov imejla -> Naslov'],original:['e.g. Paste the original prompt here...','npr. Nalepi originalni prompt ovde...'],modelLocal:['e.g. Llama 3.1 8B','npr. Llama 3.1 8B'],script:['e.g. Welcome to our new application. How can I help you today?','npr. Dobrodošli u našu novu aplikaciju. Kako vam mogu pomoći danas?'],emotion:['e.g. Warm, professional, enthusiastic','npr. Topao, profesionalan, entuzijastičan'],pacing:['e.g. Moderate pacing with a 1-second pause after welcome','npr. Umeren tempo sa pauzom od 1 sekunde nakon dobrodošlice'],speechrate:['e.g. 1.0 (normal speed)','npr. 1.0 (normalna brzina)']};
+const label={
+  tone:['Tone & style','Ton i stil'],
+  success:['Success criteria / Done when','Kriterijumi uspeha / Završeno kada'],
+  cot:['Chain-of-Thought (Reasoning)','Chain-of-Thought (Rezonovanje)'],
+  edgeCases:['Edge cases & exceptions','Granični slučajevi i izuzeci'],
+  terminology:['Language & terminology rules','Pravila za jezik i terminologiju'],
+  negativeConstraints:['Negative constraints (What NOT to do)','Negativna ograničenja (Šta NE raditi)'],
+  delimiters:['Delimiters & data tags','Graničnici i tagovi podataka'],
+  framework:['Prompting framework','Šablon razmišljanja (Framework)'],
+  clarification:['Clarification protocol','Protokol za razjašnjenja (Clarification)'],model:['Target model','Ciljani model'],answer:['Answer language','Jezik odgovora'],task:['Task / objective','Zadatak / cilj'],role:['Role / expertise','Uloga / stručnost'],context:['Context / background','Kontekst / pozadina'],audience:['Audience','Publika'],format:['Output format','Format izlaza'],length:['Maximum length','Maksimalna dužina'],tone:['Tone / style','Ton / stil'],constraints:['Constraints','Ograničenja'],success:['Done when / success criteria','Uspeh / završeno kada'],steps:['Required steps','Obavezni koraci'],examples:['Examples: one per line as INPUT => OUTPUT','Primeri: jedan po redu kao ULAZ => IZLAZ'],file:['File path / component','Putanja fajla / komponenta'],current:['Current behavior / starting state','Trenutno ponašanje / početno stanje'],desired:['Desired change / target state','Željena izmena / ciljno stanje'],scope:['Allowed scope','Dozvoljeni opseg'],dont:['Do not touch / forbidden actions','Ne diraj / zabranjene radnje'],stop:['Stop conditions','Uslovi za zaustavljanje'],environment:['Environment: OS, shell, folder, tools','Okruženje: OS, shell, folder, alati'],subject:['Subject','Subjekat'],action:['Action / pose','Radnja / poza'],setting:['Setting','Okruženje'],style:['Visual style','Vizuelni stil'],mood:['Mood','Raspoloženje'],lighting:['Lighting','Osvetljenje'],palette:['Color palette','Paleta boja'],composition:['Composition / camera','Kompozicija / kamera'],aspect:['Aspect ratio','Odnos stranica'],negative:['Negative prompt','Negativni prompt'],reference:['Reference image / what to preserve','Referentna slika / šta sačuvati'],change:['Exact change','Tačna izmena'],checkpoint:['Checkpoint model','Checkpoint model'],duration:['Duration / seconds','Trajanje / sekunde'],camera:['Camera movement','Pokret kamere'],cut:['Cut style','Stil rezova'],sources:['Approved sources / source material','Odobreni izvori / izvorni materijal'],searchmode:['Research mode','Režim istraživanja'],trigger:['Trigger app + event','Aplikacija i događaj pokretanja'],actionapp:['Action app + action','Aplikacija i radnja'],mapping:['Data mapping','Mapiranje podataka'],original:['Original prompt','Originalni prompt'],operation:['Decompiler operation','Operacija dekompajlera'],modelLocal:['Local model name','Ime lokalnog modela'],script:['Script / text to speak','Tekst za izgovor'],emotion:['Emotion / tone','Emocija / ton'],pacing:['Pacing / pauses','Tempo / pauze'],speechrate:['Speech rate','Brzina govora']};
 const tips = {
+  tone: {
+    en: "Calibrates vocabulary, demeanor, and technical depth (e.g. executive summary vs engineering deep dive).",
+    sr: "Kalibriše vokabular, ton obraćanja i tehničku dubinu (npr. direktorski pregled vs inženjerska analiza)."
+  },
+  success: {
+    en: "Unambiguous binary criteria. The model tests its own answer against these before finalizing.",
+    sr: "Jasni binarni kriterijumi. Model testira svoj odgovor prema njima pre nego što završi rad."
+  },
+  cot: {
+    en: "Forces step-by-step reasoning before answering, drastically cutting logical flaws and hallucinations.",
+    sr: "Primorava model na rezonovanje korak-po-korak, što drastično smanjuje logičke greške i halucinacije."
+  },
+  edgeCases: {
+    en: "Defines graceful degradation for missing data, boundary limits, and unexpected failure modes.",
+    sr: "Definiše elegantno postupanje pri nedostajućim podacima, graničnim vrednostima i neočekivanim greškama."
+  },
+  terminology: {
+    en: "Locks domain jargon and acronyms, and prevents awkward or inaccurate literal translations.",
+    sr: "Fiksira stručni žargon i skraćenice i sprečava neprirodne doslovne prevode tehničkih pojmova."
+  },
+  negativeConstraints: {
+    en: "Negative constraints ('what NOT to do') are 3-5x more effective than positive guidelines alone.",
+    sr: "Negativna ograničenja ('šta NE raditi') su 3-5x efikasnija od samih pozitivnih uputstava."
+  },
+  delimiters: {
+    en: "Explicit delimiters prevent prompt injection and keep instructions separated from user input data.",
+    sr: "Jasni graničnici sprečavaju prompt injection i drže instrukcije odvojene od ulaznih podataka korisnika."
+  },
+  framework: {
+    en: "Select a structured prompting methodology (RTF, CARE, ReAct, RISEN) to guide the LLM's architecture.",
+    sr: "Izaberite metodologiju promptovanja (RTF, CARE, ReAct, RISEN) za strukturisan tok misli modela."
+  },
+  clarification: {
+    en: "Instructs the AI when to pause and ask clarifying questions instead of guessing or hallucinating.",
+    sr: "Instruira AI kada da zastane i postavi potpitanja umesto da nagađa ili halucinira detalje."
+  },
   model: {
     en: "Choosing the right model calibrates capability and token cost.",
     sr: "Izbor pravog modela kalibriše sposobnost i cenu tokena."
@@ -1897,10 +1947,28 @@ const tips = {
     sr: "Podešava brzinu govora (npr. 0.9 za smireniji/ozbiljniji ton, 1.1 za brži govor)."
   }
 };
-const common=[['model','select','gpt'],['answer','select','English'],['task','textarea',''],['role','text',''],['context','textarea',''],['format','select','Markdown'],['length','text','e.g., under 250 words'],['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...']];
+const common=[
+  ['model','select','gpt'],
+  ['answer','select','English'],
+  ['framework','select','None'],
+  ['task','textarea',''],
+  ['role','text',''],
+  ['context','textarea',''],
+  ['format','select','Markdown'],
+  ['length','text','e.g., under 250 words'],
+  ['tone','text',''],
+  ['cot','select','None'],
+  ['delimiters','select','None'],
+  ['terminology','textarea',''],
+  ['negativeConstraints','textarea',''],
+  ['edgeCases','textarea',''],
+  ['clarification','select','None'],
+  ['success','textarea',''],
+  ['examples','textarea','INPUT: ... => OUTPUT: ...\nINPUT: ... => OUTPUT: ...']
+];
 const specs={
 general:{icon:'◈',name:['General prompt','Opšti prompt'],desc:['Fast, clear everyday task','Brz i jasan svakodnevni zadatak'],fields:[...common,['audience','text',''],['constraints','textarea','']]},
-business:{icon:'▤',name:['Business writing','Poslovno pisanje'],desc:['Reports, emails, documents','Izveštaji, imejlovi, dokumenti'],fields:[...common,['audience','text',''],['tone','text','Professional and direct'],['success','textarea','']]},
+business:{icon:'▤',name:['Business writing','Poslovno pisanje'],desc:['Reports, emails, documents','Izveštaji, imejlovi, dokumenti'],fields:[...common,['audience','text','']]},
 project:{icon:'◫',name:['Complex project','Složen projekat'],desc:['Sequenced multi-step work','Rad u više koraka'],fields:[...common,['steps','textarea','1. \n2. \n3. '],['success','textarea',''],['constraints','textarea','']]},
 creative:{icon:'✦',name:['Creative / brand','Kreativno / brend'],desc:['Voice, concepts, variants','Glas, koncepti, varijante'],fields:[...common,['tone','text',''],['audience','text',''],['success','textarea','Give 3 distinct variants']]},
 analysis:{icon:'◌',name:['Analysis / debugging','Analiza / debagovanje'],desc:['Logic, comparison, diagnosis','Logika, poređenje, dijagnostika'],fields:[...common,['constraints','textarea',''],['success','textarea','']]},
@@ -1942,7 +2010,34 @@ const FAMILY_MAP={
   zapier:'local', bolt:'local', devin:'local'
 };
 function familyOf(m){ return FAMILY_MAP[m] || 'local'; }
-const selects={model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
+const selects={
+  framework:[
+    ['None','Standard / None'],
+    ['RTF','RTF (Role - Task - Format)'],
+    ['CARE','CARE (Context - Action - Result - Example)'],
+    ['ReAct','ReAct (Reasoning + Acting)'],
+    ['RISEN','RISEN (Role - Input - Steps - Expectation - Narrowing)'],
+    ['CoT','CoT (Chain-of-Thought Guided)']
+  ],
+  cot:[
+    ['None','Direct answer (No CoT)'],
+    ['Step-by-step','Think step-by-step before answering'],
+    ['Numbered breakdown','Provide numbered reasoning steps first'],
+    ['Self-verification','Internally verify assumptions before output']
+  ],
+  delimiters:[
+    ['None','Standard / Automatic'],
+    ['XML','XML tags (<context>, <instructions>, <input>)'],
+    ['Triple backticks','Triple backticks (```)'],
+    ['Markdown headers','Markdown headers (## / ###)'],
+    ['Triple quotes','Triple quotes (""")']
+  ],
+  clarification:[
+    ['None','Answer directly with best effort'],
+    ['Ask up to 3 questions','Ask up to 3 clarifying questions if underspecified'],
+    ['State assumptions','State assumptions explicitly before proceeding'],
+    ['Strict halt','Halt and require confirmation before proceeding']
+  ],model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
 
 const defaultEndpoints = {
   openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
@@ -2139,7 +2234,7 @@ function input([key,kind,def]){
     tokensHtml = `<div class="field-tokens" id="ft-${key}">${countTokens(currentVal)} tok</div>`;
   }
   
-  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
+  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script','negativeConstraints','edgeCases','terminology'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
 }
 
 function renderAutoDetect(){
@@ -2260,26 +2355,46 @@ function modelRule(m){return {gpt:'Use a strong role, numbered instructions, num
 // language for simple prompts. Positive, direct instructions preferred
 // over lists of things to avoid.
 function buildAnthropicPrompt(f){
-  const sectionCount=['context','audience','steps','tone','constraints','sources','success','format','length']
+  const sectionCount=['context','audience','steps','tone','constraints','sources','success','format','length','terminology','edgeCases','negativeConstraints']
     .filter(k=>f[k]).length;
-  const useXml=sectionCount>=2; // + role/task always present => 3+ total sections
+  const useXml=sectionCount>=2;
+
+  const frameworkLine = (f.framework && f.framework !== 'None') ? ('Methodology framework: ' + f.framework) : '';
+  const cotLine = (f.cot && f.cot !== 'None') ? ('Reasoning protocol: ' + f.cot) : '';
+  const delimLine = (f.delimiters && f.delimiters !== 'None') ? ('Data delimiters: ' + f.delimiters) : '';
+  const clarLine = (f.clarification && f.clarification !== 'None') ? ('Clarification protocol: ' + f.clarification) : '';
+
   if(!useXml){
     return [
+      wrap('framework', frameworkLine),
       wrap('role', row('role','Role')),
       wrap('context', row('context','Context')),
       wrap('task', 'Task: '+f.task),
+      wrap('cot', cotLine),
       wrap('constraints', row('constraints','Constraints')),
+      wrap('negativeConstraints', row('negativeConstraints','Forbidden actions (What NOT to do)')),
+      wrap('edgeCases', row('edgeCases','Edge cases')),
+      wrap('terminology', row('terminology','Language & terminology')),
+      wrap('delimiters', delimLine),
+      wrap('clarification', clarLine),
+      wrap('success', row('success','Success criteria')),
       wrap('format', f.format?('Output format: '+f.format):''),
       wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
     ];
   }
-  const ctxLines=[f.context, f.audience?('Audience: '+f.audience):''].filter(Boolean).join('\n');
+  const ctxLines=[f.context, f.audience?('Audience: '+f.audience):'', delimLine].filter(Boolean).join('\n');
   const consLines=[f.constraints, f.tone?('Tone: '+f.tone):'', f.format?('Output format: '+f.format):'', f.length?('Maximum length: '+f.length):''].filter(Boolean).join('\n');
   return [
+    wrap('framework', (f.framework && f.framework !== 'None') ? ('<methodology>\n' + f.framework + '\n</methodology>') : ''),
     wrap('role', f.role?('<role>\n'+f.role+'\n</role>'):''),
     wrap('context', ctxLines?('<context>\n'+ctxLines+'\n</context>'):''),
     wrap('task', '<task>\n'+f.task+(f.steps?('\n\nSteps:\n'+f.steps):'')+'\n</task>'),
+    wrap('cot', (f.cot && f.cot !== 'None') ? ('<reasoning_protocol>\n' + f.cot + '\n</reasoning_protocol>') : ''),
     wrap('constraints', consLines?('<constraints>\n'+consLines+'\n</constraints>'):''),
+    wrap('negativeConstraints', f.negativeConstraints?('<forbidden_actions>\n'+f.negativeConstraints+'\n</forbidden_actions>'):''),
+    wrap('edgeCases', f.edgeCases?('<edge_cases>\n'+f.edgeCases+'\n</edge_cases>'):''),
+    wrap('terminology', f.terminology?('<terminology_rules>\n'+f.terminology+'\n</terminology_rules>'):''),
+    wrap('clarification', (f.clarification && f.clarification !== 'None') ? ('<clarification_protocol>\n' + f.clarification + '\n</clarification_protocol>') : ''),
     wrap('sources', f.sources?('<sources>\n'+f.sources+'\n</sources>'):''),
     wrap('success', f.success?('<success_criteria>\n'+f.success+'\n</success_criteria>'):''),
     wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
@@ -2289,11 +2404,22 @@ function buildAnthropicPrompt(f){
 // Google (Gemini) — dedicated `system_instruction`, XML OR Markdown but
 // never both in the same prompt, concise/direct over persuasive/verbose.
 function buildGoogleXPrompt(f){
+  const frameworkLine = (f.framework && f.framework !== 'None') ? ('## Framework: ' + f.framework) : '';
+  const cotLine = (f.cot && f.cot !== 'None') ? ('## Reasoning: ' + f.cot) : '';
+  const delimLine = (f.delimiters && f.delimiters !== 'None') ? ('Delimiter format: ' + f.delimiters) : '';
+  const clarLine = (f.clarification && f.clarification !== 'None') ? ('## Clarification Protocol\n' + f.clarification) : '';
+
   return [
+    wrap('framework', frameworkLine),
     wrap('role', f.role?('## Role\n'+f.role):''),
-    wrap('context', (f.context||f.audience)?('## Context\n'+[f.context, f.audience?('Audience: '+f.audience):''].filter(Boolean).join('\n')):''),
+    wrap('context', (f.context||f.audience||delimLine)?('## Context\n'+[f.context, f.audience?('Audience: '+f.audience):'', delimLine].filter(Boolean).join('\n')):''),
     wrap('task', '## Task\n'+f.task+(f.steps?('\n\n'+f.steps):'')),
+    wrap('cot', cotLine),
     wrap('constraints', (f.constraints||f.tone||f.format||f.length)?('## Constraints\n'+[f.constraints, f.tone?('Tone: '+f.tone):'', f.format?('Output format: '+f.format):'', f.length?('Max length: '+f.length):''].filter(Boolean).join('\n')):''),
+    wrap('negativeConstraints', f.negativeConstraints?('## Negative Constraints (Forbidden)\n'+f.negativeConstraints):''),
+    wrap('edgeCases', f.edgeCases?('## Edge Cases & Exceptions\n'+f.edgeCases):''),
+    wrap('terminology', f.terminology?('## Language & Terminology\n'+f.terminology):''),
+    wrap('clarification', clarLine),
     wrap('sources', f.sources?('## Sources\n'+f.sources+'\nUse only the sources above. Mark uncertain claims as [uncertain].'):''),
     wrap('success', f.success?('## Success Criteria\n'+f.success):''),
     wrap('answer', f.answerLang?('Output language: '+f.answerLang):'')
@@ -2306,11 +2432,23 @@ function buildOpenAIPrompt(f){
   const stepsBlock=f.steps?('\n\n**Steps:**\n'+f.steps.split('\n').filter(Boolean).map(s=>'- '+s).join('\n')):'';
   const constraintLines=[f.constraints, f.tone?('Tone: '+f.tone):''].filter(Boolean);
   const outLines=[f.answerLang?('Language: '+f.answerLang):'', f.format?('Format: '+f.format):'', f.length?('Max length: '+f.length):''].filter(Boolean);
+
+  const frameworkLine = (f.framework && f.framework !== 'None') ? ('**Methodology:** ' + f.framework) : '';
+  const cotLine = (f.cot && f.cot !== 'None') ? ('**Reasoning Protocol:** ' + f.cot) : '';
+  const delimLine = (f.delimiters && f.delimiters !== 'None') ? ('**Delimiters:** Use ' + f.delimiters + ' to isolate data.') : '';
+  const clarLine = (f.clarification && f.clarification !== 'None') ? ('## Clarification Protocol\n' + f.clarification) : '';
+
   return [
+    wrap('framework', frameworkLine),
     wrap('role', f.role?('**Role:** '+f.role):''),
-    wrap('context', f.context?('## Context\n'+f.context+(f.audience?('\n\nAudience: '+f.audience):'')):''),
+    wrap('context', (f.context||f.audience||delimLine)?('## Context\n'+[f.context, f.audience?('Audience: '+f.audience):'', delimLine].filter(Boolean).join('\n\n')):''),
     wrap('task', '## Task\n'+f.task+stepsBlock),
+    wrap('cot', cotLine),
     wrap('constraints', constraintLines.length?('## Constraints\n'+constraintLines.map(s=>'- '+s).join('\n')):''),
+    wrap('negativeConstraints', f.negativeConstraints?('## Guardrails (What NOT To Do)\n'+f.negativeConstraints):''),
+    wrap('edgeCases', f.edgeCases?('## Edge Cases & Error Handling\n'+f.edgeCases):''),
+    wrap('terminology', f.terminology?('## Terminology & Vocabulary\n'+f.terminology):''),
+    wrap('clarification', clarLine),
     wrap('sources', f.sources?('## Sources\n'+f.sources):''),
     wrap('success', f.success?('## Success Criteria\n'+f.success):''),
     wrap('format', outLines.length?('## Output\n'+outLines.map(s=>'- '+s).join('\n')+'\n\nFormat the response in Markdown.'):'')
@@ -2322,11 +2460,18 @@ function buildOpenAIPrompt(f){
 // block as a plain labeled line, flat structure, no nesting assumptions.
 function buildLocalPrompt(f){
   return [
+    wrap('framework', (f.framework && f.framework !== 'None') ? ('Methodology: ' + f.framework) : ''),
     wrap('role', row('role','Role')),
     wrap('context', row('context','Context')),
     wrap('task', 'Task: '+f.task),
     wrap('steps', f.steps?('Steps: '+f.steps):''),
+    wrap('cot', (f.cot && f.cot !== 'None') ? ('Reasoning: ' + f.cot) : ''),
     wrap('constraints', row('constraints','Constraints')),
+    wrap('negativeConstraints', row('negativeConstraints','Forbidden actions')),
+    wrap('edgeCases', row('edgeCases','Edge cases')),
+    wrap('terminology', row('terminology','Terminology')),
+    wrap('clarification', (f.clarification && f.clarification !== 'None') ? ('Clarification: ' + f.clarification) : ''),
+    wrap('delimiters', (f.delimiters && f.delimiters !== 'None') ? ('Delimiters: ' + f.delimiters) : ''),
     wrap('tone', row('tone','Tone')),
     wrap('sources', row('sources','Sources')),
     wrap('success', row('success','Success criteria')),
