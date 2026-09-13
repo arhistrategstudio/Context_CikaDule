@@ -735,6 +735,30 @@ select option {
   margin-left: auto;
 }
 
+/* Document upload controls for knowledge / retrieved-context fields */
+.attach-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.attach-btn {
+  padding: 6px 12px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+.attach-input {
+  display: none;
+}
+.attach-status {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--secondary);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Highlight Segments Styles */
 .prompt-segment {
   display: block;
@@ -1886,7 +1910,11 @@ const L={
     versionNotesLabel:'Notes',
     versionNotesPlaceholder:'What changed in this version and why...',
     versionBeforePlaceholder:'What happens before this prompt in the workflow...',
-    versionAfterPlaceholder:'What happens after this prompt in the workflow...'
+    versionAfterPlaceholder:'What happens after this prompt in the workflow...',
+    attachFiles:'Attach files',
+    attaching:'Reading',
+    attachDone:'Attached',
+    attachNoText:'(binary or unsupported format — content not extracted)'
   },
   sr:{
     tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
@@ -1993,7 +2021,11 @@ const L={
     versionNotesLabel:'Beleške',
     versionNotesPlaceholder:'Šta je promenjeno u ovoj verziji i zašto...',
     versionBeforePlaceholder:'Šta se dešava pre ovog prompta u toku rada...',
-    versionAfterPlaceholder:'Šta se dešava posle ovog prompta u toku rada...'
+    versionAfterPlaceholder:'Šta se dešava posle ovog prompta u toku rada...',
+    attachFiles:'Priloži fajlove',
+    attaching:'Čitam',
+    attachDone:'Priloženo',
+    attachNoText:'(binarni ili nepodržan format — sadržaj nije izvučen)'
   }
 };
 const placeholder={
@@ -2538,6 +2570,170 @@ function renderTypes(){
   $('btnTemplateToggle').onclick=()=>{ showAdvancedTemplates=!showAdvancedTemplates; renderTypes(); };
 }
 
+/* ============================================================
+   DOCUMENT ATTACHMENTS — upload any file type into the
+   "Attached knowledge / files" and "Retrieved context" fields.
+   Text is extracted where possible (plain text, code, PDF via
+   pdf.js, DOCX via mammoth); everything else is inserted as a
+   clearly-labelled reference so the prompt still records it.
+   All extractors are best-effort and fail softly to a reference.
+   ============================================================ */
+const TEXT_EXT = /\.(txt|text|md|markdown|mdx|json|jsonl|ndjson|csv|tsv|log|xml|html?|xhtml|css|scss|sass|less|js|mjs|cjs|jsx|ts|tsx|py|rb|go|rs|java|kt|kts|c|h|cpp|cc|hpp|cs|php|swift|sh|bash|zsh|bat|cmd|ps1|yml|yaml|toml|ini|cfg|conf|env|properties|sql|graphql|gql|svg|rtf|tex|vue|svelte|astro|dockerfile|gitignore|editorconfig)$/i;
+const TEXT_MIME = /^(text\/|application\/(json|ld\+json|xml|xhtml\+xml|x-yaml|yaml|javascript|ecmascript|x-javascript|typescript|x-typescript|sql|x-sh|x-httpd-php|x-ruby|x-python|x-perl|csv|rtf|graphql))/;
+const ATTACH_MAX_CHARS = 40000;
+
+function formatBytes(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function isTextLikeFile(name, type) {
+  if (TEXT_MIME.test(type || '')) return true;
+  return TEXT_EXT.test(name || '');
+}
+
+function readFileAsText(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => resolve('');
+    reader.readAsText(file);
+  });
+}
+
+// Reads the first bytes and only returns decoded text when the content
+// actually looks like text (no NUL bytes, few control characters).
+function readFileAsTextIfTextual(file) {
+  return new Promise(resolve => {
+    const probe = new FileReader();
+    probe.onload = () => {
+      const buf = new Uint8Array(probe.result || []);
+      const n = buf.length;
+      let suspicious = 0;
+      for (let i = 0; i < n; i++) {
+        const b = buf[i];
+        if (b === 0) { suspicious = n; break; }
+        if (b < 7 || (b > 13 && b < 32)) suspicious++;
+      }
+      if (n && suspicious > n * 0.1) { resolve(''); return; }
+      const full = new FileReader();
+      full.onload = () => resolve(String(full.result || ''));
+      full.onerror = () => resolve('');
+      full.readAsText(file);
+    };
+    probe.onerror = () => resolve('');
+    probe.readAsArrayBuffer(file.slice(0, 4096));
+  });
+}
+
+let pdfjsPromise = null;
+function loadPdfJs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.min.mjs')
+      .then(mod => {
+        try {
+          mod.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.6.82/build/pdf.worker.min.mjs';
+        } catch (e) {}
+        return mod;
+      })
+      .catch(() => null);
+  }
+  return pdfjsPromise;
+}
+
+async function extractPdfText(file) {
+  const pdfjs = await loadPdfJs();
+  if (!pdfjs || typeof pdfjs.getDocument !== 'function') throw new Error('pdf.js unavailable');
+  const data = new Uint8Array(await file.arrayBuffer());
+  const doc = await pdfjs.getDocument({ data }).promise;
+  const out = [];
+  const maxPages = Math.min(doc.numPages || 1, 50);
+  for (let p = 1; p <= maxPages; p++) {
+    const page = await doc.getPage(p);
+    const content = await page.getTextContent();
+    out.push((content.items || []).map(it => it.str || '').join(' '));
+  }
+  return out.join('\n\n');
+}
+
+let mammothPromise = null;
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-src="' + src + '"]');
+    if (existing) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.dataset.src = src;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+function loadMammoth() {
+  if (!mammothPromise) {
+    mammothPromise = loadScriptOnce('https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js')
+      .then(() => window.mammoth)
+      .catch(() => null);
+  }
+  return mammothPromise;
+}
+
+async function extractDocxText(file) {
+  const mammoth = await loadMammoth();
+  if (!mammoth || typeof mammoth.extractRawText !== 'function') throw new Error('mammoth unavailable');
+  const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+  return (result && result.value) || '';
+}
+
+async function extractFileText(file) {
+  const name = (file.name || '').toLowerCase();
+  const type = (file.type || '').toLowerCase();
+  let text = '';
+  if (type.startsWith('image/')) return '';
+  if (name.endsWith('.pdf') || type === 'application/pdf') {
+    text = await extractPdfText(file);
+  } else if (name.endsWith('.docx')) {
+    text = await extractDocxText(file);
+  } else if (isTextLikeFile(name, type)) {
+    text = await readFileAsText(file);
+  } else {
+    text = await readFileAsTextIfTextual(file);
+  }
+  if (text && text.length > ATTACH_MAX_CHARS) {
+    text = text.slice(0, ATTACH_MAX_CHARS) + '\n…[truncated]';
+  }
+  return text || '';
+}
+
+async function attachFilesToField(field, files) {
+  const ta = $('f-' + field);
+  const status = $('attach-status-' + field);
+  const q = L[lang] || L.en;
+  if (!ta) return;
+  const parts = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (status) status.textContent = q.attaching + ' ' + file.name + ' (' + (i + 1) + '/' + files.length + ')';
+    let text = '';
+    try { text = await extractFileText(file); } catch (e) { text = ''; }
+    const header = '[FILE: ' + file.name + ' | ' + (file.type || 'unknown') + ' | ' + formatBytes(file.size) + ']';
+    if (text && text.trim()) {
+      parts.push(header + '\n' + text.trim());
+    } else {
+      parts.push(header + ' ' + q.attachNoText);
+    }
+  }
+  const joined = parts.join('\n\n');
+  const existing = ta.value.trim();
+  ta.value = existing ? (existing + '\n\n' + joined) : joined;
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+  if (status) status.textContent = q.attachDone + ' ' + files.length;
+  setTimeout(() => { if (status) status.textContent = ''; }, 5000);
+}
+
 function input([key,kind,def]){
   let control;
   const ph=placeholder[key]?.[lang==='en'?0:1]||'';
@@ -2559,8 +2755,22 @@ function input([key,kind,def]){
     const currentVal = data[active]?.[key] ?? '';
     tokensHtml = `<div class="field-tokens" id="ft-${key}">${countTokens(currentVal)} tok</div>`;
   }
-  
-  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script','negativeConstraints','edgeCases','terminology','systemInstructions','knowledgeFiles','retrievedContext','conversationHistory','userState','toolAccess','modelSettings'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+tipHtml+tokensHtml+'</div>';
+
+  // Document upload for the two knowledge-bearing fields. Accepts every
+  // file type; text is extracted where possible (txt/code/PDF/DOCX) and a
+  // clearly-labelled reference is inserted otherwise.
+  let attachHtml = '';
+  if (kind === 'textarea' && (key === 'knowledgeFiles' || key === 'retrievedContext')) {
+    const q = L[lang] || L.en;
+    attachHtml =
+      '<div class="attach-row">' +
+        '<button type="button" class="secondary attach-btn" data-target="f-' + key + '">📎 <span>' + esc(q.attachFiles) + '</span></button>' +
+        '<input type="file" class="attach-input" id="file-' + key + '" data-field="' + key + '" multiple>' +
+        '<span class="attach-status" id="attach-status-' + key + '" role="status" aria-live="polite"></span>' +
+      '</div>';
+  }
+
+  return '<div class="'+(['task','context','current','desired','constraints','success','examples','environment','sources','mapping','original','stop','script','negativeConstraints','edgeCases','terminology','systemInstructions','knowledgeFiles','retrievedContext','conversationHistory','userState','toolAccess','modelSettings'].includes(key)?'full':'')+'"><label for="f-'+key+'">'+title(key)+(def?'<small> · '+esc(def)+'</small>':'')+'</label>'+control+attachHtml+tipHtml+tokensHtml+'</div>';
 }
 
 function renderAutoDetect(){
@@ -2602,6 +2812,7 @@ function renderFields(){
   $('fields').innerHTML=questionsHtml+visibleFields.map(input).join('')+decompileBtnHtml;
 
   $('fields').querySelectorAll('input,textarea,select').forEach(el=>{
+    if (el.classList.contains('attach-input')) return;
     const key=el.id.slice(2);
     const handleUpdate = () => {
       data[active]??={};
@@ -2623,6 +2834,18 @@ function renderFields(){
     el.addEventListener('blur', () => {
       document.querySelectorAll('.prompt-segment').forEach(s => s.classList.remove('active-highlight'));
     });
+  });
+
+  $('fields').querySelectorAll('.attach-input').forEach(fileEl => {
+    const field = fileEl.dataset.field;
+    const btn = $('fields').querySelector('.attach-btn[data-target="f-' + field + '"]');
+    if (btn) btn.onclick = () => fileEl.click();
+    fileEl.onchange = async () => {
+      const files = Array.from(fileEl.files || []);
+      if (!files.length) return;
+      await attachFilesToField(field, files);
+      fileEl.value = '';
+    };
   });
 
   if (active === 'decompiler') {

@@ -87,8 +87,8 @@ Seamlessly toggle between **English** and **Serbian (Srpski)** with one click. E
 ### 10. 🧩 Guided/Extended Context-Engineering Fields
 Switch the workspace to **Guided/Extended** to expose the fields that shape a production context window, each with an inline explanation (EN/SR) and a live token count:
 - **System instructions** — highest-priority rules and persona (also sent as the provider's native `system` / `system_instruction` when running in-console).
-- **Attached knowledge / files** — reference documents or file contents the model may use.
-- **Retrieved context** — search or RAG chunks used to ground the answer.
+- **Attached knowledge / files** — reference documents or file contents the model may use. Includes a **📎 Attach files** uploader that accepts **any file type**: plain text, code, Markdown, JSON/CSV, HTML/XML and more are read directly; **PDF** (pdf.js) and **DOCX** (mammoth) are text-extracted best-effort; other binary formats are inserted as a labelled reference (`[FILE: name | type | size]`) so the prompt still records them.
+- **Retrieved context** — search or RAG chunks used to ground the answer. Has the same all-types document uploader as above.
 - **Conversation history** — prior turns that give the model memory and continuity.
 - **User state / task context** — the user's current situation so the response adapts.
 - **Tool access** — which tools/functions the model is allowed to call, and when.

@@ -22,6 +22,8 @@ assert.match(html, /modelSettings/, 'The app needs the Guided/Extended model set
 assert.match(html, /conversationHistory/, 'The app needs the Guided/Extended conversation history field.');
 assert.match(html, /knowledgeFiles/, 'The app needs the Guided/Extended knowledge/files field.');
 assert.match(html, /userState/, 'The app needs the Guided/Extended user state field.');
+assert.match(html, /attach-input/, 'The knowledge and retrieved-context fields need document upload controls.');
+assert.match(html, /extractFileText/, 'The app needs the document text-extraction helper.');
 
 assert.match(worker, /request\.method === 'OPTIONS'/, 'Worker must support the connection check.');
 assert.match(worker, /url\.pathname === '\/api\/run'/, 'Worker must expose the run endpoint.');
