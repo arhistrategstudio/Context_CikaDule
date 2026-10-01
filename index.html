@@ -2484,6 +2484,7 @@ const selects={
   ],model:Object.entries(models),answer:[['English','English'],['Serbian','Serbian'],['Both English and Serbian','English + Serbian']],format:[['Markdown','Markdown'],['Plain text','Plain text'],['JSON','JSON'],['XML','XML'],['Table','Table'],['Bullet points','Bullet points'],['Code / script','Code / script']],checkpoint:[['SD 1.5','SD 1.5'],['SDXL','SDXL'],['Flux','Flux']],searchmode:[['Search','Search'],['Analyze','Analyze'],['Compare','Compare']],operation:[['Break down','Break down'],['Adapt','Adapt'],['Simplify','Simplify'],['Split','Split']]};
 
 const defaultEndpoints = {
+  mock: { url: '', model: 'Mock Tester' },
   openai: { url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-5.6-luna' },
   cloudflare: { url: '', model: '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b' },
   gemini: { url: '', model: 'gemini-flash-latest' },
@@ -3481,8 +3482,11 @@ function showModal() {
   $('apiKey').value = getApiKey() || '';
   $('apiRememberKey').checked = rememberApiKey();
   $('cfAccountId').value = localStorage.getItem('nc_cf_account_id') || '';
-  $('apiUrl').value = localStorage.getItem('nc_api_url') || defaultEndpoints[apiProvider.value].url;
-  $('apiModel').value = localStorage.getItem('nc_api_model') || defaultEndpoints[apiProvider.value].model;
+  
+  // Safety check: use stored values or defaults, with fallback to openai if provider missing
+  const provEndpoint = defaultEndpoints[apiProvider.value] || defaultEndpoints['openai'];
+  $('apiUrl').value = localStorage.getItem('nc_api_url') || provEndpoint.url;
+  $('apiModel').value = localStorage.getItem('nc_api_model') || provEndpoint.model;
   
   toggleCfGroup();
   $('apiTestStatus').textContent = '';
@@ -3504,10 +3508,9 @@ function toggleCfGroup() {
 apiProvider.addEventListener('change', () => {
   toggleCfGroup();
   const prov = apiProvider.value;
-  if (defaultEndpoints[prov]) {
-    $('apiUrl').value = defaultEndpoints[prov].url;
-    $('apiModel').value = defaultEndpoints[prov].model;
-  }
+  const endpoint = defaultEndpoints[prov] || defaultEndpoints['openai'];
+  $('apiUrl').value = endpoint.url;
+  $('apiModel').value = endpoint.model;
 });
 
 btnApiSettings.onclick = showModal;
@@ -4040,6 +4043,13 @@ async function runAutoDetect(){
   const modelId = localStorage.getItem('nc_api_model');
 
   const hasKey = apiKey && apiKey.trim().length > 0;
+  
+  // Mock Tester does not support auto-detect (requires real AI analysis)
+  if (provider === 'mock') {
+    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">Auto-Detect not available in Mock Tester mode</span><br/><br/><span style="color: var(--text-muted); font-size: 12px;">Switch to a real provider (OpenAI, Gemini, Anthropic, etc.) to use AI analysis.</span>`;
+    return;
+  }
+  
   if (!hasKey) {
     statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectNotConfigured)}</span><br/><br/><button class="secondary" id="btnAutoDetectSettings" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔑 ${esc(q.apiSettings)}</button>`;
     $('btnAutoDetectSettings').onclick = showModal;
