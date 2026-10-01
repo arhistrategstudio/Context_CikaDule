@@ -1764,7 +1764,6 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
           <option value="openrouter">OpenRouter (Recommended)</option>
           <option value="anthropic">Anthropic Claude</option>
           <option value="custom">Custom / Local (Ollama, LM Studio)</option>
-          <option value="mock">Mock Tester (No API Calls)</option>
         </select>
       </div>
       
@@ -3695,7 +3694,6 @@ async function runInModel() {
   const hasKey = apiKey && apiKey.trim().length > 0;
   const isCfConfigured = provider === 'cloudflare' && cfAccountId && cfAccountId.trim().length > 0 && hasKey;
   const isCustomOrLocal = provider === 'custom';
-  const isMockMode = provider === 'mock';
 
   setActiveTab('response');
   const responseTextEl = $('response-output-text');
@@ -3703,7 +3701,7 @@ async function runInModel() {
   const emptyEl = $('responseEmptyState');
   if (emptyEl) emptyEl.style.display = 'none';
 
-  if (!hasKey && !isCfConfigured && !isCustomOrLocal && !isMockMode) {
+  if (!hasKey && !isCfConfigured && !isCustomOrLocal) {
     responseLoader.style.display = 'none';
     const m = val('model') || 'gpt';
     const modelName = getShortModelName(m);
@@ -3729,10 +3727,7 @@ async function runInModel() {
   $('responseStatusText').textContent = L[lang].connecting;
 
   try {
-    if (provider === 'mock') {
-      // Mock Tester mode — no API calls, simulated streaming
-      await callMock(promptText, responseTextEl, 'default');
-    } else if (provider === 'cloudflare') {
+    if (provider === 'cloudflare') {
       await callCloudflare(cfAccountId, apiKey, modelId, promptText, responseTextEl);
     } else if (provider === 'gemini') {
       await callGemini(apiKey, modelId, customUrl, promptText, responseTextEl, systemText);
@@ -3994,38 +3989,6 @@ async function callAnthropic(apiKey, modelId, customUrl, promptText, outputTextE
   } else {
     throw new Error('Empty response from Anthropic API');
   }
-}
-
-async function callMock(promptText, outputTextEl, arenaMode = 'A') {
-  // Simulate streaming response without making any real API calls.
-  // Useful for testing UI/UX and multi-model Arena without cost.
-  
-  const mockResponses = {
-    'A': 'This is a mocked streaming response for testing Arena Side A. Each character is streamed with a slight delay to simulate real LLM streaming behavior. This helps you verify that your UI handles partial responses, buffering, and final concatenation correctly.',
-    'B': 'This is a mocked streaming response for testing Arena Side B. The streaming simulation includes varied text length and pacing, allowing you to stress-test your response display logic. Notice how the text flows character by character, just like a real LLM.',
-    'default': 'Mock Tester simulation: This prompt has been processed in TEST mode with no external API calls. Use this to validate your prompt structure, UI responsiveness, and multi-model comparison without spending tokens or API credits. Perfect for development and sharing with team members.'
-  };
-  
-  const selectedResponse = mockResponses[arenaMode] || mockResponses['default'];
-  outputTextEl.textContent = '';
-  
-  // Simulate character-by-character streaming with variable delays
-  let charIndex = 0;
-  
-  const streamChar = () => {
-    if (charIndex < selectedResponse.length) {
-      const char = selectedResponse[charIndex];
-      outputTextEl.textContent += char;
-      charIndex++;
-      
-      // Variable delay: 10–40ms per character for natural feel
-      const delay = Math.random() * 30 + 10;
-      setTimeout(streamChar, delay);
-    }
-  };
-  
-  // Start streaming
-  streamChar();
 }
 
 async function runAutoDetect(){
@@ -4368,10 +4331,7 @@ async function runArenaSide(side) {
     const modelId = localStorage.getItem('nc_api_model');
     const systemText = [val('systemInstructions'), val('role')].filter(Boolean).join('\n\n');
 
-    if (provider === 'mock') {
-      // Mock Tester mode — no API calls, simulated streaming
-      await callMock(promptText, respText, side);
-    } else if (provider === 'cloudflare') {
+    if (provider === 'cloudflare') {
       const cfId = localStorage.getItem('nc_cf_account_id');
       await callCloudflare(cfId, apiKey, modelId, promptText, respText);
     } else if (provider === 'gemini') {

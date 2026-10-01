@@ -186,12 +186,47 @@ WORKER_URL=http://127.0.0.1:8787 OPENAI_API_KEY=sk-... npm test
 
 | Provider | Default Model | Custom URL Support | Streaming |
 | :--- | :--- | :--- | :---: |
+| **Mock Tester** | Simulated (No API) | No | ✅ (Simulated) |
 | **OpenAI** | `gpt-4o-mini`, `gpt-4o`, `o3-mini` | Yes (Compatible endpoints) | ✅ |
 | **Google Gemini** | `gemini-2.5-flash`, `gemini-1.5-pro` | Yes (REST endpoints) | ✅ |
 | **Anthropic** | `claude-3-5-sonnet-latest` | Yes | ✅ |
 | **OpenRouter** | Any OpenRouter model ID | Yes | ✅ |
 | **Cloudflare Workers AI** | `@cf/meta/llama-3.1-8b-instruct` | Cloudflare Gateway | ✅ |
 | **Custom / Local** | Ollama, vLLM, LM Studio, Llama.cpp | Yes (`http://localhost:11434`) | ✅ |
+
+---
+
+## 🧪 API Mocking (For App Developers)
+
+If you are trying to test your web app's UI/UX, prompt building, and multi-model "Arena" layout without making any real LLM network calls, you should implement an **API Mocking strategy**:
+
+### How to Use Mock Tester Mode
+
+1. **Select Mock Tester Provider**: Open the API Provider dropdown in Settings and select **"Mock Tester (No API Calls)"**.
+2. **Run Prompts Locally**: Click **Run** or **RUN BOTH** in the Arena — no API key is required, and no network requests are made to external providers.
+3. **Simulated Streaming**: The console displays a simulated streaming response character-by-character, with variable timing delays to mimic real LLM streaming behavior.
+4. **Share with Team Members**: Distribute your app to colleagues without requiring them to configure API keys or manage credentials — they can test the entire prompt-building flow using Mock mode.
+
+### Mock Tester Behavior
+
+- **No Cost**: Zero API calls, zero token consumption, zero billing impact.
+- **Instant Responses**: Simulated responses stream with natural delays (10–40ms per character).
+- **Arena-Aware**: Different mock responses for Arena Side A and Side B, so A/B comparison testing works identically to live execution.
+- **UI/UX Validation**: Perfect for stress-testing streaming UI, response buffering, error handling, and multi-model comparison without network variability.
+
+### Implementation Details
+
+The Mock Tester is implemented as a provider option in the API Provider dropdown:
+- **Create a "Mock Tester" Provider Option**: The console includes `Mock Tester (No API Calls)` as a built-in provider choice.
+- **Intercept at Execution**: When you click "Run" or "RUN BOTH", the console checks the selected provider. If it is set to "Mock", the execution bypasses all real Cloudflare Worker proxies and LLM API calls.
+- **Simulate Streamed Responses**: The application uses JavaScript `setTimeout` loops to slowly append simulated text into the response display state variables. This allows you to watch your streaming UI function flawlessly without spending a dime.
+
+### Use Cases
+
+- **Local Development**: Test prompt templates, UI responsiveness, and model comparison logic before deploying.
+- **Team Demos**: Share the app with your team and let them build and preview prompts without API key setup.
+- **CI/CD Testing**: Automate smoke tests for the console's Arena layout and response rendering.
+- **Rapid Iteration**: Iterate on prompt structure and formatting without incurring API costs for every test run.
 
 ---
 
