@@ -4044,9 +4044,37 @@ async function runAutoDetect(){
 
   const hasKey = apiKey && apiKey.trim().length > 0;
   
-  // Mock Tester does not support auto-detect (requires real AI analysis)
+  // Mock Tester mode — simulate AI analysis without API calls
   if (provider === 'mock') {
-    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">Auto-Detect not available in Mock Tester mode</span><br/><br/><span style="color: var(--text-muted); font-size: 12px;">Switch to a real provider (OpenAI, Gemini, Anthropic, etc.) to use AI analysis.</span>`;
+    statusEl.textContent = q.autodetectAnalyzing;
+    
+    try {
+      // Simulate brief analysis delay
+      await new Promise(r => setTimeout(r, 800));
+      
+      // Mock response (simulating a detected task type)
+      const mockResponse = {
+        type: 'other',
+        fields: {
+          taskName: '[Mock] Task Analysis Result',
+          description: description,
+          steps: 'This is a simulated analysis in Mock Tester mode. Switch to a real provider (OpenAI, Gemini, Anthropic) for actual AI detection.',
+          criteria: 'Mock mode provides UI/functionality testing without API costs or keys.'
+        },
+        clarifying_questions: ['What is your actual use case?', 'Which AI provider would you like to use?']
+      };
+      
+      active = mockResponse.type;
+      data[active] = Object.assign({}, data[active], mockResponse.fields || {});
+      autoDetectQuestions = Array.isArray(mockResponse.clarifying_questions) ? mockResponse.clarifying_questions : [];
+      autoDetectQuestionsFor = active;
+      mode = 'express';
+      $('btnExpress').classList.add('on');
+      $('btnExpert').classList.remove('on');
+      render();
+    } catch (err) {
+      statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectErrorPrefix)}${esc(err.message)}</span>`;
+    }
     return;
   }
   
@@ -4356,6 +4384,23 @@ async function runArenaSide(side) {
   const hasKey = apiKey && apiKey.trim().length > 0;
 
   setArenaTab(side, 'response');
+
+  // If Mock mode, simulate response (no external call)
+  if (provider === 'mock') {
+    const loader = $('arenaLoader' + side);
+    const respText = $('arenaResponseText' + side);
+    if (loader) loader.style.display = 'flex';
+    if (respText) respText.textContent = '';
+    
+    try {
+      await callMock(promptText, respText, side);
+    } catch (err) {
+      if (respText) respText.innerHTML = '<span style="color:var(--accent);">Error: ' + esc(err.message) + '</span>';
+    } finally {
+      if (loader) loader.style.display = 'none';
+    }
+    return;
+  }
 
   if (!hasKey && provider !== 'custom') {
     runExternal(promptText, modelKey);
