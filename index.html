@@ -4054,12 +4054,19 @@ async function runAutoDetect(){
       
       // Mock response (simulating a detected task type)
       const mockResponse = {
-        type: 'other',
+        type: 'general',
         fields: {
-          taskName: '[Mock] Task Analysis Result',
-          description: description,
-          steps: 'This is a simulated analysis in Mock Tester mode. Switch to a real provider (OpenAI, Gemini, Anthropic) for actual AI detection.',
-          criteria: 'Mock mode provides UI/functionality testing without API costs or keys.'
+          model: 'gpt',
+          answer: 'English',
+          framework: 'None',
+          task: '[Mock Analysis] ' + description,
+          text: 'This is a simulated analysis in Mock Tester mode. Switch to a real provider (OpenAI, Gemini, Anthropic) for actual AI detection.',
+          constraints: 'Mock mode provides UI/functionality testing without API costs or keys.',
+          format: 'Markdown',
+          cot: 'None',
+          delimiters: 'None',
+          clarification: 'None',
+          success: 'Mock response — actual results require a real AI provider.'
         },
         clarifying_questions: ['What is your actual use case?', 'Which AI provider would you like to use?']
       };
