@@ -2878,7 +2878,9 @@ function renderAutoDetect(){
 function renderFields(){
   if (mode === 'autodetect') { renderAutoDetect(); return; }
 
-  const s=specs[active];
+  const s=specs[active] || specs['general'];
+  if (!s) return;
+  
   $('formTitle').textContent=s.name[lang==='en'?0:1];
   $('formIntro').textContent=s.desc[lang==='en'?0:1];
 
