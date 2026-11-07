@@ -4,32 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NEON//CONTEXT — By CikaDule</title>
-<link rel="icon" type="image/png" href="orao.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(30, 27, 75, 0.45) 0%, rgba(9, 9, 11, 0.95) 100%);
-  --bg-main: #09090b;
-  --panel-bg: rgba(18, 18, 24, 0.7);
-  --panel-bg-solid: #121215;
-  --panel-border: rgba(255, 255, 255, 0.08);
-  --panel-border-hover: rgba(255, 255, 255, 0.15);
-  
-  --primary: #6366f1;         /* Indigo */
-  --primary-hover: #4f46e5;
-  --primary-glow: rgba(99, 102, 241, 0.3);
-  --secondary: #10b981;       /* Emerald */
-  --secondary-hover: #059669;
-  --secondary-glow: rgba(16, 185, 129, 0.2);
-  --accent: #ec4899;          /* Pink */
-  
-  --text-main: #f4f4f5;       /* Off-white */
-  --text-muted: #a1a1aa;      /* Cool gray */
-  --input-bg: rgba(9, 9, 11, 0.6);
-  --input-border: rgba(255, 255, 255, 0.12);
-  --input-focus: #6366f1;
-  
+  --bg-gradient: radial-gradient(circle at 80% 0%, rgba(90, 68, 24, 0.28) 0%, rgba(10, 9, 7, 0.86) 70%);
+  --bg-main: #0B0A08;
+  --panel-bg: rgba(20, 18, 14, 0.78);
+  --panel-bg-solid: #15130F;
+  --panel-border: rgba(214, 178, 102, 0.14);
+  --panel-border-hover: rgba(214, 178, 102, 0.32);
+
+  --primary: #D4AF5F;         /* Gold */
+  --primary-hover: #E3C47E;
+  --primary-glow: rgba(212, 175, 95, 0.22);
+  --primary-ink: #17130A;     /* text on gold */
+  --secondary: #CDB37A;       /* Light gold — text, outlines */
+  --secondary-hover: #B89B5C;
+  --secondary-glow: rgba(205, 179, 122, 0.18);
+  --surface-2: #231F17;       /* Dark bronze surface for secondary buttons */
+  --accent: #E39B6A;          /* Copper — errors / warnings only */
+
+  --text-main: #F3EEE3;       /* Warm off-white */
+  --text-muted: #A69F90;      /* Warm gray */
+  --input-bg: rgba(8, 7, 5, 0.66);
+  --input-border: rgba(214, 178, 102, 0.18);
+  --input-focus: #D4AF5F;
+  --radius: 12px;
+
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'Fira Code', Consolas, monospace;
 }
@@ -40,7 +44,7 @@
 
 body {
   margin: 0;
-  background-image: var(--bg-gradient), url('ai_background.jpg');
+  background-image: var(--bg-gradient), url('bg-gold.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -55,7 +59,7 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, rgba(9, 9, 11, 0.35) 0%, rgba(9, 9, 11, 0.75) 100%);
+  background: radial-gradient(circle at 50% 50%, rgba(11, 10, 8, 0.35) 0%, rgba(11, 10, 8, 0.75) 100%);
   z-index: -1;
 }
 
@@ -86,7 +90,7 @@ button, input, textarea, select {
   align-items: center;
   padding: 16px 32px;
   border-bottom: 1px solid var(--panel-border);
-  background: rgba(9, 9, 11, 0.8);
+  background: rgba(11, 10, 8, 0.8);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   position: sticky;
@@ -104,7 +108,7 @@ button, input, textarea, select {
   width: 40px;
   height: 40px;
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.5));
+  filter: drop-shadow(0 0 10px rgba(212, 175, 95, 0.5));
 }
 
 .brand {
@@ -128,7 +132,7 @@ button, input, textarea, select {
   margin-top: 2px;
   letter-spacing: 0;
   display: inline-block;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 8px rgba(212, 175, 95, 0.3);
 }
 
 .brand small {
@@ -175,7 +179,7 @@ button, input, textarea, select {
   gap: 12px;
   padding: 12px 32px;
   border-bottom: 1px solid var(--panel-border);
-  background: rgba(9, 9, 11, 0.6);
+  background: rgba(11, 10, 8, 0.6);
   backdrop-filter: blur(8px);
   overflow: auto;
 }
@@ -199,7 +203,7 @@ aside, .editor {
 }
 
 aside {
-  background: rgba(18, 18, 24, 0.55);
+  background: rgba(20, 18, 14, 0.55);
   backdrop-filter: blur(12px);
 }
 
@@ -209,7 +213,7 @@ aside {
 }
 
 .preview {
-  background: rgba(18, 18, 24, 0.6);
+  background: rgba(20, 18, 14, 0.6);
   backdrop-filter: blur(12px);
 }
 
@@ -269,10 +273,10 @@ aside {
 }
 
 .type.on {
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(212, 175, 95, 0.08);
   color: var(--text-main);
   border-color: var(--primary);
-  box-shadow: inset 3px 0 0 var(--accent), 0 4px 12px rgba(99, 102, 241, 0.1);
+  box-shadow: inset 3px 0 0 var(--accent), 0 4px 12px rgba(212, 175, 95, 0.1);
 }
 
 .type.type-ai {
@@ -284,10 +288,10 @@ aside {
 }
 
 .type.type-ai.on {
-  background: rgba(236, 72, 153, 0.08);
+  background: rgba(227, 155, 106, 0.08);
   color: var(--text-main);
   border-color: var(--accent);
-  box-shadow: inset 3px 0 0 var(--accent), 0 4px 12px rgba(236, 72, 153, 0.1);
+  box-shadow: inset 3px 0 0 var(--accent), 0 4px 12px rgba(227, 155, 106, 0.1);
 }
 
 .type-divider {
@@ -368,7 +372,7 @@ input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--input-focus);
   box-shadow: 0 0 0 3px var(--primary-glow);
-  background: rgba(9, 9, 11, 0.8);
+  background: rgba(11, 10, 8, 0.8);
 }
 
 :focus-visible { outline: 3px solid var(--secondary); outline-offset: 3px; }
@@ -455,7 +459,7 @@ select option {
   font-weight: 600;
   border: 1px solid var(--secondary);
   color: var(--secondary);
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(212, 175, 95, 0.1);
   padding: 4px 8px;
   border-radius: 4px;
   text-transform: uppercase;
@@ -472,7 +476,7 @@ select option {
 .badge.tokens {
   border-color: var(--primary);
   color: #ffffff;
-  background: rgba(99, 102, 241, 0.22);
+  background: rgba(212, 175, 95, 0.22);
   font-family: var(--font-mono);
   letter-spacing: 0;
   text-transform: none;
@@ -480,13 +484,13 @@ select option {
   font-weight: 700;
   padding: 5px 12px;
   border-radius: 6px;
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 12px rgba(212, 175, 95, 0.25);
 }
 
 .badge.savings {
   border-color: var(--accent);
   color: var(--accent);
-  background: rgba(236, 72, 153, 0.1);
+  background: rgba(227, 155, 106, 0.1);
   font-family: var(--font-mono);
   letter-spacing: 0;
   text-transform: none;
@@ -497,22 +501,22 @@ select option {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(99, 102, 241, 0.22));
+  background: linear-gradient(135deg, rgba(227, 155, 106, 0.22), rgba(212, 175, 95, 0.22));
   border: 1px solid var(--accent);
   padding: 4px 10px;
   border-radius: 6px;
-  box-shadow: 0 0 15px rgba(236, 72, 153, 0.35);
+  box-shadow: 0 0 15px rgba(227, 155, 106, 0.35);
   animation: pulseSavings 2s infinite ease-in-out;
 }
 @keyframes pulseSavings {
-  0%, 100% { box-shadow: 0 0 8px rgba(236, 72, 153, 0.25); border-color: rgba(236, 72, 153, 0.8); }
-  50% { box-shadow: 0 0 20px rgba(236, 72, 153, 0.6); border-color: #ff77ba; }
+  0%, 100% { box-shadow: 0 0 8px rgba(227, 155, 106, 0.25); border-color: rgba(227, 155, 106, 0.8); }
+  50% { box-shadow: 0 0 20px rgba(227, 155, 106, 0.6); border-color: #F0B98F; }
 }
 .savings-pct {
   font-family: var(--font-mono);
   font-weight: 800;
   font-size: 15px;
-  color: #ff77ba;
+  color: #F0B98F;
   letter-spacing: -0.02em;
 }
 .savings-text {
@@ -563,8 +567,8 @@ select option {
 }
 
 .api-error-card {
-  background: rgba(236, 72, 153, 0.08);
-  border: 1px solid rgba(236, 72, 153, 0.35);
+  background: rgba(227, 155, 106, 0.08);
+  border: 1px solid rgba(227, 155, 106, 0.35);
   border-radius: 8px;
   padding: 20px;
   margin-top: 10px;
@@ -686,10 +690,10 @@ select option {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(212, 175, 95, 0.05);
   padding: 4px;
   border-radius: 8px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(212, 175, 95, 0.25);
 }
 .compact-btn {
   background: transparent;
@@ -723,7 +727,7 @@ select option {
 .field-tokens {
   font-size: 13px;
   font-weight: 600;
-  color: #93c5fd;
+  color: #E8D3A0;
   font-family: var(--font-mono);
   margin-top: 6px;
   text-align: right;
@@ -768,8 +772,8 @@ select option {
   margin: -2px -4px;
 }
 .prompt-segment.active-highlight {
-  background: rgba(99, 102, 241, 0.18);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.15);
+  background: rgba(212, 175, 95, 0.18);
+  box-shadow: 0 0 8px rgba(212, 175, 95, 0.15);
   color: #ffffff;
   border-left: 2px solid var(--primary);
   padding-left: 6px;
@@ -779,7 +783,7 @@ select option {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(9, 9, 11, 0.85);
+  background: rgba(11, 10, 8, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
@@ -795,13 +799,13 @@ select option {
   pointer-events: auto;
 }
 .modal-content {
-  background: #121215;
+  background: #15130F;
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   width: 90%;
   max-width: 480px;
   padding: 24px;
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 40px rgba(212, 175, 95, 0.25);
   transform: scale(0.95);
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -1050,7 +1054,7 @@ select option {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(212, 175, 95, 0.15);
   color: var(--primary);
   border: 1px solid currentColor;
   transition: all 0.3s ease;
@@ -1071,10 +1075,10 @@ select option {
 .quality-bar-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #ec4899, #6366f1, #10b981);
+  background: linear-gradient(90deg, #E39B6A, #D4AF5F, #D4AF5F);
   border-radius: 999px;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 10px rgba(212, 175, 95, 0.5);
 }
 .quality-chips {
   display: flex;
@@ -1101,16 +1105,16 @@ select option {
   transform: translateY(-1px);
 }
 .quality-chip.done {
-  border-color: rgba(16, 185, 129, 0.4);
-  background: rgba(16, 185, 129, 0.08);
-  color: #10b981;
+  border-color: rgba(212, 175, 95, 0.4);
+  background: rgba(212, 175, 95, 0.08);
+  color: #D4AF5F;
 }
 .quality-chip.missing {
-  border-color: rgba(236, 72, 153, 0.3);
+  border-color: rgba(227, 155, 106, 0.3);
   color: #f472b6;
 }
 .quality-chip.missing:hover {
-  background: rgba(236, 72, 153, 0.15);
+  background: rgba(227, 155, 106, 0.15);
   border-color: var(--accent);
 }
 
@@ -1211,7 +1215,7 @@ select option {
 .arena-panel {
   display: flex;
   flex-direction: column;
-  background: rgba(9, 9, 11, 0.5);
+  background: rgba(11, 10, 8, 0.5);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 12px;
@@ -1237,12 +1241,12 @@ select option {
   font-family: var(--font-mono);
 }
 .arena-tag.tag-a {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(212, 175, 95, 0.2);
   color: var(--primary);
   border: 1px solid var(--primary);
 }
 .arena-tag.tag-b {
-  background: rgba(236, 72, 153, 0.2);
+  background: rgba(227, 155, 106, 0.2);
   color: var(--accent);
   border: 1px solid var(--accent);
 }
@@ -1362,7 +1366,7 @@ select option {
   font-size: 13px;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  background: rgba(9, 9, 11, 0.5);
+  background: rgba(11, 10, 8, 0.5);
   border: 1px solid var(--panel-border);
   border-radius: 8px;
   padding: 10px 12px;
@@ -1427,7 +1431,7 @@ select option {
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(99, 102, 241, 0.18);
+  background: rgba(212, 175, 95, 0.18);
   color: var(--primary);
   border: 1px solid var(--primary);
 }
@@ -1462,7 +1466,7 @@ select option {
   font-weight: 600;
 }
 .version-block code {
-  color: #93c5fd;
+  color: #E8D3A0;
   font-family: var(--font-mono);
 }
 .version-actions {
@@ -1517,7 +1521,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
   .editor .actions {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
     margin: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-    background: rgba(9, 9, 11, 0.94); backdrop-filter: blur(10px);
+    background: rgba(11, 10, 8, 0.94); backdrop-filter: blur(10px);
     border-top: 1px solid var(--panel-border);
     flex-wrap: nowrap; overflow-x: auto; gap: 8px; scrollbar-width: none;
   }
@@ -1529,22 +1533,65 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
 @media (max-width: 560px) {
   #tagline { display: none; }
 }
+
+/* ===== ArhistrategStudio gold theme + fixes (2026-11) ===== */
+html { background: var(--bg-main); }
+body { background-color: var(--bg-main); }
+.brand-logo { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 4px 14px rgba(0,0,0,.55)); }
+.brand { letter-spacing: .02em; }
+.by-author { background: none !important; color: var(--primary) !important; padding: 0 !important; border: 0 !important; font-weight: 500; letter-spacing: .04em; text-transform: none; box-shadow: none !important; }
+.api-settings-btn { background: transparent; color: var(--text-main); border: 1px solid var(--panel-border-hover); padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.api-settings-btn:hover { border-color: var(--primary); color: var(--primary); }
+button.primary, .primary { color: var(--primary-ink) !important; }
+button.primary:hover { background: var(--primary-hover); }
+button, input, select, textarea, .badge, .type, .modal-content, .panel, .card { border-radius: var(--radius); }
+button.secondary, .secondary { background: var(--surface-2); color: var(--text-main); border-color: var(--panel-border-hover); }
+button.secondary:hover { border-color: var(--primary); }
+.eyebrow { color: var(--primary) !important; opacity: .9; }
+button#run, button#runExternalBtn, button.preview-btn.preview-external, button.preview-btn.preview-run, button#btnRunPreview, button#btnArenaRunBoth, button#btnArenaRunA, button#btnArenaRunB {
+  background: transparent !important; color: var(--primary) !important; border: 1px solid var(--primary) !important; box-shadow: none !important; }
+button#run:hover, button#runExternalBtn:hover, button.preview-btn.preview-external:hover, button.preview-btn.preview-run:hover, #btnArenaRunBoth:hover, #btnArenaRunA:hover, #btnArenaRunB:hover {
+  background: rgba(212,175,95,.12) !important; }
+.arena-nav-btn.on, .arena-toggle-pill.on { background: var(--primary) !important; color: var(--primary-ink) !important; border-color: var(--primary) !important; }
+.type.on { box-shadow: inset 3px 0 0 var(--primary), 0 4px 12px rgba(212,175,95,.1) !important; }
+.type.type-ai, .type.type-ai.on { border-color: var(--primary) !important; background: rgba(212,175,95,.06) !important; }
+.type.type-ai b { color: var(--primary) !important; }
+.type.type-ai.on { box-shadow: inset 3px 0 0 var(--primary), 0 4px 12px rgba(212,175,95,.12) !important; }
+.badge { color: var(--secondary); border-color: rgba(205,179,122,.5); }
+.lang button.on, .nav button.on { color: var(--primary-ink); }
+::selection { background: rgba(212,175,95,.35); color: #fff; }
+.compact-toggle-container:empty { display: none; }
+@media (max-width: 480px) {
+  .api-settings-btn::before { content: 'API'; font-weight: 600; font-size: 12px; letter-spacing: .04em; }
+  .brand-logo { width: 44px; height: 44px; }
+  .by-author { font-size: 11px; }
+  header.top { gap: 8px; }
+  .brand-wrapper { gap: 10px; min-width: 0; }
+}
+@media (max-width: 900px) {
+  /* backdrop-filter on .editor turned the fixed action bar into a page-bottom bar; remove it on mobile */
+  section.editor { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; background: rgba(20, 18, 14, 0.94); }
+  body { padding-bottom: 92px; }
+  main.app { padding-bottom: 24px; }
+  .previewHead { flex-wrap: wrap; gap: 10px; }
+  .previewHead > div:last-child { align-items: flex-start !important; }
+}
 </style>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="top">
   <div class="brand-wrapper">
-    <img src="orao.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+    <img src="logo-arhistrateg.webp" alt="ArhistrategStudio" class="brand-logo" width="64" height="64">
     <div class="brand">
       NEON//CONTEXT
-      <span class="by-author">By CikaDule</span>
+      <span class="by-author">by ArhistrategStudio · CikaDule</span>
       <small id="tagline">PROMPT ENGINEERING CONSOLE · MODEL-AWARE</small>
     </div>
   </div>
   <div style="display: flex; align-items: center; gap: 12px;">
-    <button id="btnApiSettings" style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); border: 1px solid var(--panel-border); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; display: flex; align-items: center; gap: 6px;">
-      🔑 <span id="apiSettingsT">API Settings</span>
+    <button id="btnApiSettings" class="api-settings-btn">
+      <span id="apiSettingsT">API Settings</span>
     </button>
     <div class="lang">
       <button class="on" data-lang="en">EN</button>
@@ -1555,7 +1602,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
 <nav class="nav" aria-label="Main navigation">
   <button class="on" id="navBuilder">▣ <span id="builderNavT">Context builder</span></button>
   <button class="arena-nav-btn" id="navArena" title="Compare prompts and execution between two models">⚖ <span id="arenaNavT">Arena (A/B)</span></button>
-  <button class="arena-nav-btn" id="navVersions" title="Save and revisit prompt versions with full context metadata">🗂 <span id="versionsNavT">Versions</span></button>
+  <button class="arena-nav-btn" id="navVersions" title="Save and revisit prompt versions with full context metadata">▤ <span id="versionsNavT">Versions</span></button>
   <button id="clear" title="Clear form" aria-label="Clear form">↺ <span id="clearT">Clear form</span></button>
 </nav>
 <main class="app" id="main-content">
@@ -1602,9 +1649,9 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
     <div class="actions">
       <button class="primary" id="copy">▣ <span id="copyT">Copy prompt</span></button>
       <button class="primary" id="runExternalBtn">↗ <span id="runExternalT">Open in model</span></button>
-      <button class="primary" id="run">⚡ <span id="runT">Run</span></button>
+      <button class="primary" id="run">▶ <span id="runT">Run</span></button>
       <button class="secondary" id="download">↓ <span id="downloadT">Download .txt</span></button>
-      <button class="secondary" id="btnSaveVersion">💾 <span id="saveVersionT">Save version</span></button>
+      <button class="secondary" id="btnSaveVersion"><span id="saveVersionT">Save version</span></button>
       <span id="status" role="status" aria-live="polite"></span>
     </div>
   </section>
@@ -1616,13 +1663,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
       </div>
       <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <div class="compact-toggle-container">
-          <span id="compactToggleLabel">⚡</span>
           <button class="arena-toggle-pill" id="btnToggleArena" title="Side-by-side prompt comparison between two models">⚖ <span id="arenaPillT">ARENA</span></button>
-          <button class="compact-btn" id="btnCompact" title="Mechanically strip filler words and collapse blank lines to reduce token count">COMPACT</button>
-          <div class="savings-pill" id="savingsPill" style="display:none;" title="Exact percentage of tokens saved by compact mode">
-            <span class="savings-pct" id="savingsPctVal">-0%</span>
-            <span class="savings-text" id="savingsTextVal">SAVED</span>
-          </div>
         </div>
         <div class="badge-row">
           <span class="badge" id="modelBadge"></span>
@@ -1635,9 +1676,9 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
     <div class="preview-actions">
       <button class="primary preview-btn" id="btnCopyPreview">▣ <span id="copyPreviewT">Copy prompt</span></button>
       <button class="primary preview-btn preview-external" id="btnExternalPreview">↗ <span id="externalPreviewT">Open in model</span></button>
-      <button class="primary preview-btn preview-run" id="btnRunPreview">⚡ <span id="runPreviewT">Run</span></button>
+      <button class="primary preview-btn preview-run" id="btnRunPreview">▶ <span id="runPreviewT">Run</span></button>
       <button class="secondary preview-btn" id="btnDownloadPreview">↓ <span id="downloadPreviewT">Download .txt</span></button>
-      <button class="secondary preview-btn" id="btnSaveVersionPreview">💾 <span id="saveVersionPreviewT">Save version</span></button>
+      <button class="secondary preview-btn" id="btnSaveVersionPreview"><span id="saveVersionPreviewT">Save version</span></button>
     </div>
 
     <div class="preview-tabs-container">
@@ -1653,7 +1694,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
       <div class="output" id="output"></div>
       
       <div class="output" id="response-output" style="display: none; position: relative;">
-        <button class="copy-response-btn" id="btnCopyResponse">📋 COPY</button>
+        <button class="copy-response-btn" id="btnCopyResponse">COPY</button>
         <div class="response-loader" id="responseLoader" style="display: none;">
           <div class="loader-dot"></div>
           <div class="loader-dot"></div>
@@ -1661,7 +1702,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
           <span id="responseStatusText">Generating response...</span>
         </div>
         <div id="responseEmptyState" class="response-empty-state">
-          <div class="response-empty-icon">⚡</div>
+          <div class="response-empty-icon">▶</div>
           <div class="response-empty-title" id="resEmptyTitle">No model response yet</div>
           <p class="response-empty-desc" id="resEmptyDesc">
             Click Run to execute this prompt with your API key, or Open in … to paste it into the model yourself. The streamed response appears here.
@@ -1677,7 +1718,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
             <span class="arena-topbar-desc" id="arenaDescT">Compare how your prompt compiles and executes across two distinct AI models.</span>
           </div>
           <div class="arena-topbar-actions">
-            <button class="primary arena-btn-sm" id="btnArenaRunBoth">⚡ <span id="arenaRunBothT">RUN BOTH</span></button>
+            <button class="primary arena-btn-sm" id="btnArenaRunBoth">▶ <span id="arenaRunBothT">RUN BOTH</span></button>
             <button class="secondary arena-btn-sm" id="btnArenaCopyBoth">▣ <span id="arenaCopyBothT">COPY BOTH</span></button>
           </div>
         </div>
@@ -1694,7 +1735,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
             <div class="arena-panel-actions">
               <button class="secondary arena-btn-sm" id="btnArenaCopyA">▣ <span id="arenaCopyAT">Copy</span></button>
               <button class="primary arena-btn-sm" id="btnArenaOpenA">↗ <span id="arenaOpenAT">Open</span></button>
-              <button class="primary arena-btn-sm" id="btnArenaRunA">⚡ <span id="arenaRunAT">Run</span></button>
+              <button class="primary arena-btn-sm" id="btnArenaRunA">▶ <span id="arenaRunAT">Run</span></button>
             </div>
             <div class="arena-output-tabs">
               <button class="arena-tab-btn on" id="arenaTabPromptA">Prompt A</button>
@@ -1724,7 +1765,7 @@ label { font-size: 13px; text-transform: none; letter-spacing: 0; }
             <div class="arena-panel-actions">
               <button class="secondary arena-btn-sm" id="btnArenaCopyB">▣ <span id="arenaCopyBT">Copy</span></button>
               <button class="primary arena-btn-sm" id="btnArenaOpenB">↗ <span id="arenaOpenBT">Open</span></button>
-              <button class="primary arena-btn-sm" id="btnArenaRunB">⚡ <span id="arenaRunBT">Run</span></button>
+              <button class="primary arena-btn-sm" id="btnArenaRunB">▶ <span id="arenaRunBT">Run</span></button>
             </div>
             <div class="arena-output-tabs">
               <button class="arena-tab-btn on" id="arenaTabPromptB">Prompt B</button>
@@ -1904,7 +1945,13 @@ const L={
     lblApiModel:'Model ID',
     apiCancel:'Cancel',
     apiTest:'Test connection',
-    apiTesting:'Checking Worker connection...',
+    apiTesting:'Testing the key with a 5-token request...',
+    apiTestOk:'✓ Key works — the provider answered.',
+    apiTestBadKey:'The provider rejected this key (401/403). Check the key and the selected provider.',
+    apiTestNoKey:'Enter an API key first.',
+    apiTestMock:'Mock Tester needs no key — runs are simulated locally.',
+    apiTestFailPrefix:'The provider returned an error: ',
+    apiTestLocalFail:'Cannot reach the local server. Is Ollama / LM Studio running, and does it allow this site (OLLAMA_ORIGINS)?',
     apiConnected:'Worker connection is working. Your API key was not sent.',
     apiConnectionFailed:'Cannot reach the Worker. Check your internet connection and try again.',
     showMoreTemplates:'Show all templates',
@@ -1912,9 +1959,9 @@ const L={
     apiSave:'Save Settings',
     tabPrompt:'Prompt',
     tabResponse:'Response',
-    copyResponse:'📋 Copy',
+    copyResponse:'Copy',
     copiedResponse:'✓ Copied',
-    generating:'⚡ Generating…',
+    generating:'Generating…',
     connecting:'Connecting to API...',
     receiving:'Receiving response...',
     errorOccurred:'Error: ',
@@ -1923,7 +1970,7 @@ const L={
     autodetectPanelIntro:'Describe your task in your own words — don’t worry about formatting. The AI will recognize what kind of task this is, pick the matching template from the list, and fill in the relevant fields. If something important is missing, it will ask you up to 3 follow-up questions before you continue.',
     autodetectPlaceholder:'Describe your task in plain language...',
     autodetectAnalyze:'Analyze',
-    autodetectAnalyzing:'⚡ Analyzing…',
+    autodetectAnalyzing:'Analyzing…',
     autodetectNotConfigured:'No API key configured. Add your API key in Settings to use AI Auto-Detect.',
     autodetectQuestionsTitle:'Clarifying questions from the AI:',
     autodetectErrorPrefix:'Auto-detect failed: ',
@@ -2033,7 +2080,13 @@ const L={
     lblApiModel:'Model ID',
     apiCancel:'Otkaži',
     apiTest:'Proveri vezu',
-    apiTesting:'Proveravam vezu sa Worker-om...',
+    apiTesting:'Proveravam ključ zahtevom od 5 tokena...',
+    apiTestOk:'✓ Ključ radi — provajder je odgovorio.',
+    apiTestBadKey:'Provajder je odbio ključ (401/403). Proverite ključ i izabranog provajdera.',
+    apiTestNoKey:'Prvo unesite API ključ.',
+    apiTestMock:'Mock Tester ne traži ključ — pokretanja se simuliraju lokalno.',
+    apiTestFailPrefix:'Provajder je vratio grešku: ',
+    apiTestLocalFail:'Lokalni server nije dostupan. Da li je Ollama / LM Studio pokrenut i da li dozvoljava ovaj sajt (OLLAMA_ORIGINS)?',
     apiConnected:'Veza sa Worker-om radi. API ključ nije poslat.',
     apiConnectionFailed:'Worker nije dostupan. Proverite internet vezu i pokušajte ponovo.',
     showMoreTemplates:'Prikaži sve šablone',
@@ -2041,9 +2094,9 @@ const L={
     apiSave:'Sačuvaj podešavanja',
     tabPrompt:'Prompt',
     tabResponse:'Odgovor',
-    copyResponse:'📋 Kopiraj',
+    copyResponse:'Kopiraj',
     copiedResponse:'✓ Kopirano',
-    generating:'⚡ Generišem…',
+    generating:'Generišem…',
     connecting:'Povezujem se sa API-jem...',
     receiving:'Primam odgovor...',
     errorOccurred:'Greška: ',
@@ -2052,7 +2105,7 @@ const L={
     autodetectPanelIntro:'Opiši svoj zadatak svojim rečima — bez brige oko formata. AI će prepoznati o kojoj vrsti zadatka je reč, izabrati odgovarajući šablon sa liste i popuniti relevantna polja. Ako nešto važno nedostaje, postaviće ti do 3 dodatna pitanja pre nego što nastaviš.',
     autodetectPlaceholder:'Opišite zadatak jednostavnim jezikom...',
     autodetectAnalyze:'Analiziraj',
-    autodetectAnalyzing:'⚡ Analiziram…',
+    autodetectAnalyzing:'Analiziram…',
     autodetectNotConfigured:'API ključ nije podešen. Dodajte API ključ u Podešavanjima da biste koristili AI Auto-Detekciju.',
     autodetectQuestionsTitle:'Dodatna pitanja od AI-ja:',
     autodetectErrorPrefix:'Auto-detekcija nije uspela: ',
@@ -2423,7 +2476,7 @@ image:{icon:'◉',name:['Image generation','Generisanje slike'],desc:['Midjourne
 imageEdit:{icon:'◐',name:['Image edit','Izmena slike'],desc:['Change one thing, preserve rest','Izmeni jedno, sačuvaj ostalo'],fields:[['model','select','dalle'],['reference','textarea',''],['change','textarea',''],['constraints','textarea','Keep style, lighting, and all listed elements unchanged.'],['negative','textarea','']]},
 comfy:{icon:'▧',name:['ComfyUI','ComfyUI'],desc:['Positive / negative prompt','Pozitivan / negativan prompt'],fields:[['model','select','comfy'],['checkpoint','select','SDXL'],['subject','text',''],['style','text',''],['mood','text',''],['lighting','text',''],['composition','text',''],['negative','textarea','blurry, low quality, watermark'],['aspect','text','1024 x 1024']]},
 video:{icon:'▷',name:['Video generation','Generisanje videa'],desc:['Sora, Runway, Kling','Sora, Runway, Kling'],fields:[['model','select','sora'],['subject','text',''],['action','text',''],['setting','text',''],['camera','text','slow dolly in'],['duration','text','8 seconds'],['mood','text',''],['lighting','text',''],['cut','text','single continuous shot'],['aspect','text','16:9']]},
-voice:{icon:'🔊',name:['Voice AI','Glasovni AI'],desc:['ElevenLabs, Murf AI','ElevenLabs, Murf AI'],fields:[['model','select','voice'],['script','textarea',''],['emotion','text',''],['pacing','text',''],['speechrate','text','']]},
+voice:{icon:'◎',name:['Voice AI','Glasovni AI'],desc:['ElevenLabs, Murf AI','ElevenLabs, Murf AI'],fields:[['model','select','voice'],['script','textarea',''],['emotion','text',''],['pacing','text',''],['speechrate','text','']]},
 research:{icon:'⌕',name:['Research','Istraživanje'],desc:['Search-grounded answers','Odgovori zasnovani na izvorima'],fields:[['model','select','perplexity'],['systemInstructions','textarea',''],['task','textarea',''],['searchmode','select','Search'],['sources','textarea',''],['knowledgeFiles','textarea',''],['retrievedContext','textarea',''],['conversationHistory','textarea',''],['userState','textarea',''],['audience','text',''],['format','select','Markdown'],['length','text','under 500 words'],['toolAccess','textarea',''],['modelSettings','textarea',''],['success','textarea','Cite the specific source for each factual claim.']]},
 workflow:{icon:'⇄',name:['Workflow automation','Automatizacija'],desc:['Zapier, Make, n8n','Zapier, Make, n8n'],fields:[['model','select','zapier'],['trigger','text',''],['actionapp','text',''],['mapping','textarea',''],['constraints','textarea','Assumes listed apps are already connected.'],['success','textarea','List numbered steps and data passed between them.']]},
 decompiler:{icon:'◇',name:['Prompt decompiler','Prompt dekompajler'],desc:['Break down, adapt, simplify','Razloži, prilagodi, pojednostavi'],fields:[['model','select','gpt'],['operation','select','Break down'],['original','textarea',''],['task','textarea',''],['format','select','Markdown']]}
@@ -2625,7 +2678,7 @@ function wrap(key, content) {
 function renderTypes(){
   const el=$('types');
   const q=L[lang];
-  const autoBtn='<button class="type type-ai '+(mode==='autodetect'?'on':'')+'" id="typeAutoDetect"><b>✨</b><div><strong>'+esc(q.autodetectSidebarLabel)+'</strong><span>'+esc(q.autodetectSidebarDesc)+'</span></div></button>';
+  const autoBtn='<button class="type type-ai '+(mode==='autodetect'?'on':'')+'" id="typeAutoDetect"><b>✦</b><div><strong>'+esc(q.autodetectSidebarLabel)+'</strong><span>'+esc(q.autodetectSidebarDesc)+'</span></div></button>';
   const divider='<hr class="type-divider">';
   const starterTypes = ['general', 'coding', 'research'];
   const visibleTypes = showAdvancedTemplates || !starterTypes.includes(active)
@@ -2834,7 +2887,7 @@ function input([key,kind,def]){
   let tipHtml = '';
   if (mode === 'expert' && tips[key]) {
     const tipText = tips[key][lang];
-    tipHtml = `<div class="field-tip">💡 ${esc(tipText)}</div>`;
+    tipHtml = `<div class="field-tip">${esc(tipText)}</div>`;
   }
 
   let tokensHtml = '';
@@ -2851,7 +2904,7 @@ function input([key,kind,def]){
     const q = L[lang] || L.en;
     attachHtml =
       '<div class="attach-row">' +
-        '<button type="button" class="secondary attach-btn" data-target="f-' + key + '">📎 <span>' + esc(q.attachFiles) + '</span></button>' +
+        '<button type="button" class="secondary attach-btn" data-target="f-' + key + '">+ <span>' + esc(q.attachFiles) + '</span></button>' +
         '<input type="file" class="attach-input" id="file-' + key + '" data-field="' + key + '" multiple>' +
         '<span class="attach-status" id="attach-status-' + key + '" role="status" aria-live="polite"></span>' +
       '</div>';
@@ -3355,7 +3408,7 @@ function setLang(l){
   $('btnExpert').textContent = q.expert;
   $('btnExpress').title = q.expressTitle;
   $('btnExpert').title = q.expertTitle;
-  $('btnCompact').textContent = q.compactLabel;
+  if ($('btnCompact')) $('btnCompact').textContent = q.compactLabel;
   
   // Novi preview dugmići i elementi
   if ($('copyPreviewT')) $('copyPreviewT').textContent = q.copyPreview || q.copy;
@@ -3431,7 +3484,7 @@ $('btnExpert').onclick = () => {
   renderFields();
   build();
 };
-$('btnCompact').onclick = () => {
+if ($('btnCompact')) $('btnCompact').onclick = () => {
   compact = !compact;
   $('btnCompact').classList.toggle('on', compact);
   build();
@@ -3521,14 +3574,39 @@ btnApiCancel.onclick = hideModal;
 
 btnApiTest.onclick = async () => {
   const status = $('apiTestStatus');
+  const q = L[lang];
+  const provider = apiProvider.value;
+  const key = $('apiKey').value.trim();
+  const url = $('apiUrl').value.trim();
+  const model = $('apiModel').value.trim();
+  const cfId = $('cfAccountId').value.trim();
+  if (provider === 'mock') { status.textContent = q.apiTestMock; return; }
+  if (!key && provider !== 'custom') { status.textContent = q.apiTestNoKey; return; }
   btnApiTest.disabled = true;
-  status.textContent = L[lang].apiTesting;
+  status.textContent = q.apiTesting;
   try {
-    const response = await fetch(`${WORKER_URL}/api/run`, { method: 'OPTIONS' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    status.textContent = L[lang].apiConnected;
+    const ping = 'Reply with OK.';
+    let payload;
+    if (provider === 'anthropic') payload = { model: model || 'claude-sonnet-5', max_tokens: 5, messages: [{ role: 'user', content: ping }] };
+    else if (provider === 'gemini') payload = { contents: [{ role: 'user', parts: [{ text: ping }] }], generationConfig: { maxOutputTokens: 5 } };
+    else if (provider === 'cloudflare') payload = { messages: [{ role: 'user', content: ping }], max_tokens: 5 };
+    else payload = { model: model || (defaultEndpoints[provider] || {}).model, max_tokens: 5, messages: [{ role: 'user', content: ping }] };
+    let response;
+    if (provider === 'custom') {
+      const headers = { 'Content-Type': 'application/json' };
+      if (key) headers['Authorization'] = `Bearer ${key}`;
+      response = await fetch(url || defaultEndpoints.custom.url, { method: 'POST', headers, body: JSON.stringify(payload) });
+    } else {
+      response = await fetch(`${WORKER_URL}/api/run`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, apiKey: key, modelId: model || undefined, url: url || undefined, cfAccountId: cfId || undefined, payload })
+      });
+    }
+    if (response.ok) status.textContent = q.apiTestOk;
+    else if (response.status === 401 || response.status === 403) status.textContent = q.apiTestBadKey;
+    else status.textContent = q.apiTestFailPrefix + (await apiError(response));
   } catch (error) {
-    status.textContent = L[lang].apiConnectionFailed;
+    status.textContent = provider === 'custom' ? q.apiTestLocalFail : q.apiConnectionFailed;
   } finally {
     btnApiTest.disabled = false;
   }
@@ -3642,8 +3720,8 @@ function updateRunButtonState() {
   const label = lang === 'en' ? 'Run' : 'Pokreni';
   const bg = isConfigured 
     ? 'linear-gradient(135deg, var(--primary), var(--primary-hover))' 
-    : 'linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(99, 102, 241, 0.2))';
-  const border = isConfigured ? 'var(--primary)' : 'rgba(99, 102, 241, 0.5)';
+    : 'linear-gradient(135deg, rgba(212, 175, 95, 0.4), rgba(212, 175, 95, 0.2))';
+  const border = isConfigured ? 'var(--primary)' : 'rgba(212, 175, 95, 0.5)';
   
   if (runBtn) {
     runBtn.style.background = bg;
@@ -3715,7 +3793,7 @@ async function runInModel() {
     const q = L[lang];
     responseTextEl.innerHTML = `
       <div class="api-not-configured-card">
-        <div style="font-size: 28px; margin-bottom: 10px;">🔑</div>
+        <div style="font-size: 28px; margin-bottom: 10px;">◆</div>
         <div style="font-weight: 700; font-size: 15px; color: var(--accent); margin-bottom: 8px;">${esc(q.apiNotConfiguredTitle)}</div>
         <p style="font-size: 13px; color: var(--text-muted); max-width: 480px; margin: 0 auto 18px; line-height: 1.5;">${esc(q.apiNotConfiguredDesc)}</p>
         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -3802,21 +3880,24 @@ async function callOpenAICompatible(provider, apiKey, modelId, customUrl, prompt
 
   const fallbackModel = provider === 'openai' ? 'gpt-5.6-luna' : provider === 'custom' ? 'llama3' : 'google/gemini-3.5-flash';
 
-  const response = await fetch(`${WORKER_URL}/api/run`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      provider,
-      apiKey,
-      modelId,
-      url: customUrl || undefined,
-      payload: {
-        model: modelId || fallbackModel,
-        messages,
-        stream: true
-      }
-    })
-  });
+  const runPayload = { model: modelId || fallbackModel, messages, stream: true };
+  let response;
+  if (provider === 'custom') {
+    // Local servers (Ollama, LM Studio) are only reachable from the user's own browser, never from the Worker.
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+    try {
+      response = await fetch(customUrl || defaultEndpoints.custom.url, { method: 'POST', headers, body: JSON.stringify(runPayload) });
+    } catch (e) {
+      throw new Error(L[lang].apiTestLocalFail);
+    }
+  } else {
+    response = await fetch(`${WORKER_URL}/api/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, apiKey, modelId, url: customUrl || undefined, payload: runPayload })
+    });
+  }
 
   if (!response.ok) throw new Error(await apiError(response));
 
@@ -4055,8 +4136,19 @@ async function runAutoDetect(){
       await new Promise(r => setTimeout(r, 800));
       
       // Mock response (simulating a detected task type)
+      const d = (description || '').toLowerCase();
+      const guess = [
+        ['coding', /(kod|code|script|skript|python|javascript|bug|funkcij|function|api|komponent|refactor)/],
+        ['image', /(slik|image|photo|fotograf|ilustr|logo|poster)/],
+        ['video', /(video|klip|clip|animacij)/],
+        ['voice', /(glas|voice|tts|naracij|narrat)/],
+        ['research', /(istraž|research|izvor|source|uporedi|compare)/],
+        ['workflow', /(automatiz|zapier|make\.com|workflow|trigger|n8n)/],
+        ['business', /(mejl|email|ponud|offer|izveštaj|report|klijent|client)/],
+        ['analysis', /(analiz|analy|debug|grešk|error)/]
+      ].find(([, re]) => re.test(d));
       const mockResponse = {
-        type: 'general',
+        type: guess ? guess[0] : 'general',
         fields: {
           model: 'gpt',
           answer: 'English',
@@ -4088,7 +4180,7 @@ async function runAutoDetect(){
   }
   
   if (!hasKey) {
-    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectNotConfigured)}</span><br/><br/><button class="secondary" id="btnAutoDetectSettings" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔑 ${esc(q.apiSettings)}</button>`;
+    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectNotConfigured)}</span><br/><br/><button class="secondary" id="btnAutoDetectSettings" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">${esc(q.apiSettings)}</button>`;
     $('btnAutoDetectSettings').onclick = showModal;
     return;
   }
@@ -4126,7 +4218,7 @@ async function runAutoDetect(){
     render();
   } catch (err) {
     console.error(err);
-    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectErrorPrefix)}${esc(err.message)}</span><br/><br/><button class="secondary" id="btnAutoDetectRetry" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">🔄 ${esc(q.autodetectAnalyze)}</button>`;
+    statusEl.innerHTML = `<span style="color: var(--accent); font-weight: bold;">${esc(q.autodetectErrorPrefix)}${esc(err.message)}</span><br/><br/><button class="secondary" id="btnAutoDetectRetry" style="padding: 6px 12px; font-size: 12px; margin-top: 8px;">↻ ${esc(q.autodetectAnalyze)}</button>`;
     $('btnAutoDetectRetry').onclick = runAutoDetect;
   } finally {
     const retryBtn = $('btnAnalyze');
@@ -4246,12 +4338,12 @@ function updatePromptQuality() {
       if (scoreBadge) { scoreBadge.style.color = '#f59e0b'; scoreBadge.style.background = 'rgba(245, 158, 11, 0.15)'; }
       if (verdict) { verdict.textContent = q.qualityVerdictBasic; verdict.style.color = '#fbbf24'; }
     } else if (score < 90) {
-      barFill.style.background = 'linear-gradient(90deg, #6366f1, #3b82f6)';
-      if (scoreBadge) { scoreBadge.style.color = '#6366f1'; scoreBadge.style.background = 'rgba(99, 102, 241, 0.15)'; }
+      barFill.style.background = 'linear-gradient(90deg, #D4AF5F, #3b82f6)';
+      if (scoreBadge) { scoreBadge.style.color = '#D4AF5F'; scoreBadge.style.background = 'rgba(212, 175, 95, 0.15)'; }
       if (verdict) { verdict.textContent = q.qualityVerdictSolid; verdict.style.color = '#818cf8'; }
     } else {
-      barFill.style.background = 'linear-gradient(90deg, #10b981, #00ffcc)';
-      if (scoreBadge) { scoreBadge.style.color = '#10b981'; scoreBadge.style.background = 'rgba(16, 185, 129, 0.15)'; }
+      barFill.style.background = 'linear-gradient(90deg, #D4AF5F, #00ffcc)';
+      if (scoreBadge) { scoreBadge.style.color = '#D4AF5F'; scoreBadge.style.background = 'rgba(212, 175, 95, 0.15)'; }
       if (verdict) { verdict.textContent = q.qualityVerdictOptimal; verdict.style.color = '#34d399'; }
     }
   }
@@ -4579,13 +4671,13 @@ function renderCapturePreview() {
   const src = [val('sources'), val('retrievedContext'), val('knowledgeFiles')].filter(Boolean);
   const Lc = L[lang] || L.en;
   const lines = [
-    ['📄', Lc.versionPromptLabel, ($('output').innerText || '').trim()],
-    ['🎛', Lc.versionParametersLabel, [models[m] || m, val('modelSettings')].filter(Boolean).join(' · ')],
-    ['🗣', Lc.versionBrandVoiceLabel, bv.join(' · ')],
-    ['🧩', Lc.versionExamplesLabel, val('examples')],
-    ['📚', Lc.versionSourcesLabel, src.join(' · ')],
+    ['¶', Lc.versionPromptLabel, ($('output').innerText || '').trim()],
+    ['≡', Lc.versionParametersLabel, [models[m] || m, val('modelSettings')].filter(Boolean).join(' · ')],
+    ['❝', Lc.versionBrandVoiceLabel, bv.join(' · ')],
+    ['⊞', Lc.versionExamplesLabel, val('examples')],
+    ['§', Lc.versionSourcesLabel, src.join(' · ')],
     ['✅', Lc.versionEvalLabel, val('success')],
-    ['🔧', Lc.versionToolsLabel, [val('systemInstructions'), val('toolAccess')].filter(Boolean).join(' · ')]
+    ['⌁', Lc.versionToolsLabel, [val('systemInstructions'), val('toolAccess')].filter(Boolean).join(' · ')]
   ];
   el.innerHTML = '<strong>' + esc(Lc.versionCaptured) + '</strong>\n' +
     lines.map(([icon, label, value]) => versionMetaLine(icon, label, value)).join('');
@@ -4630,14 +4722,14 @@ function versionSummary(v) {
   const src = [v.sourceDocuments && v.sourceDocuments.approved, v.sourceDocuments && v.sourceDocuments.retrieved, v.sourceDocuments && v.sourceDocuments.attached].filter(Boolean);
   const bv = [v.brandVoice && v.brandVoice.tone, v.brandVoice && v.brandVoice.context, v.brandVoice && v.brandVoice.audience].filter(Boolean);
   return [
-    versionMetaLine('🎛', Lc.versionParametersLabel, v.parameters),
-    versionMetaLine('🗣', Lc.versionBrandVoiceLabel, bv.join(' · ')),
-    versionMetaLine('🧩', Lc.versionExamplesLabel, v.exampleOutputs),
-    versionMetaLine('📚', Lc.versionSourcesLabel, src.join(' · ')),
+    versionMetaLine('≡', Lc.versionParametersLabel, v.parameters),
+    versionMetaLine('❝', Lc.versionBrandVoiceLabel, bv.join(' · ')),
+    versionMetaLine('⊞', Lc.versionExamplesLabel, v.exampleOutputs),
+    versionMetaLine('§', Lc.versionSourcesLabel, src.join(' · ')),
     versionMetaLine('✅', Lc.versionEvalLabel, v.evaluationCriteria),
-    versionMetaLine('➡', Lc.versionBeforeLabel, v.workflow && v.workflow.before),
+    versionMetaLine('→', Lc.versionBeforeLabel, v.workflow && v.workflow.before),
     versionMetaLine('⬅', Lc.versionAfterLabel, v.workflow && v.workflow.after),
-    versionMetaLine('📝', Lc.versionNotesLabel, v.notes)
+    versionMetaLine('✎', Lc.versionNotesLabel, v.notes)
   ].join('');
 }
 function renderVersionsList() {
@@ -4659,12 +4751,12 @@ function renderVersionsList() {
         '<span class="version-model">' + esc(v.modelLabel || v.model || '') + '</span>' +
       '</div>' +
       versionSummary(v) +
-      '<div class="version-block">📄 <b>' + esc(Lc.versionPromptLabel) + ':</b> <code>' + esc(String(v.prompt || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').slice(0, 260)) + '…</code></div>' +
+      '<div class="version-block">¶ <b>' + esc(Lc.versionPromptLabel) + ':</b> <code>' + esc(String(v.prompt || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').slice(0, 260)) + '…</code></div>' +
       '<div class="version-actions">' +
         '<button class="primary" data-act="restore">↩ ' + esc(Lc.versionRestore) + '</button>' +
         '<button class="secondary" data-act="copy">▣ ' + esc(Lc.versionCopy) + '</button>' +
         '<button class="secondary" data-act="download">↓ ' + esc(Lc.versionDownload) + '</button>' +
-        '<button class="secondary" data-act="delete">🗑 ' + esc(Lc.versionDelete) + '</button>' +
+        '<button class="secondary" data-act="delete">× ' + esc(Lc.versionDelete) + '</button>' +
       '</div>' +
     '</div>';
   }).join('');
