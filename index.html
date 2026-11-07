@@ -627,7 +627,7 @@ select option {
 }
 
 .output:before {
-  content: "// READY_TO_PASTE";
+  content: "Prompt";
   display: block;
   color: var(--accent);
   font-weight: 600;
@@ -1075,7 +1075,7 @@ select option {
 .quality-bar-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #E39B6A, #D4AF5F, #D4AF5F);
+  background: var(--primary);
   border-radius: 999px;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
   box-shadow: 0 0 10px rgba(212, 175, 95, 0.5);
@@ -1576,9 +1576,38 @@ button#run:hover, button#runExternalBtn:hover, button.preview-btn.preview-extern
   .previewHead { flex-wrap: wrap; gap: 10px; }
   .previewHead > div:last-child { align-items: flex-start !important; }
 }
+
+/* ===== Stage 2: sharp edges, no glow, animated background, mobile ===== */
+:root { --radius: 0px; --panel-bg: rgba(16, 15, 12, 0.50); --input-bg: rgba(8, 7, 5, 0.72); }
+#bgfx { position: fixed; inset: 0; z-index: -2; pointer-events: none; display: block; }
+html { background: #0E0D0B !important; }
+header.top { background: rgba(12, 11, 9, 0.94) !important; backdrop-filter: none !important; }
+main.app > aside, main.app > section, nav.nav { background: rgba(12, 11, 9, 0.42) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+body::before { display: none !important; }
+body { background: transparent !important; }
+.output:before { color: var(--text-muted) !important; letter-spacing: .12em; text-transform: uppercase; font-size: 11px !important; }
+body::before { background: radial-gradient(circle at 50% 40%, rgba(11,10,8,0) 0%, rgba(11,10,8,0.35) 100%) !important; }
+*:not(.loader-dot), *::before, *::after { border-radius: 0 !important; }
+button, input, select, textarea, .badge, .type, .modal-content, .output, .quality-card, .card { box-shadow: none !important; }
+.type.on { box-shadow: inset 3px 0 0 var(--primary) !important; }
+.quality-bar-fill { box-shadow: none !important; }
+#tagline { text-transform: none !important; letter-spacing: 0 !important; font-size: 13px; color: var(--text-muted); max-width: 46ch; display: block; }
+.by-author { font-size: 12px; }
+@media (max-width: 560px) {
+  #tagline { display: block !important; font-size: 12px; line-height: 1.35; margin-top: 2px; }
+  header.top { padding: 12px 14px !important; align-items: flex-start; }
+  .brand { font-size: 17px !important; }
+  aside, section.editor, section.preview, .preview { padding-left: 14px !important; padding-right: 14px !important; }
+  textarea, input, select { font-size: 16px !important; } /* stops iOS zoom on focus */
+  .nav { overflow-x: auto; flex-wrap: nowrap !important; }
+  .nav button { flex: none; }
+  .editor .actions > button { min-height: 44px; }
+  .arena-grid, .arena-panels { grid-template-columns: 1fr !important; }
+}
 </style>
 </head>
 <body>
+<canvas id="bgfx" aria-hidden="true"></canvas>
 <a class="skip-link" href="#main-content">Skip to main content</a>
 <header class="top">
   <div class="brand-wrapper">
@@ -1586,7 +1615,7 @@ button#run:hover, button#runExternalBtn:hover, button.preview-btn.preview-extern
     <div class="brand">
       NEON//CONTEXT
       <span class="by-author">by ArhistrategStudio · CikaDule</span>
-      <small id="tagline">PROMPT ENGINEERING CONSOLE · MODEL-AWARE</small>
+      <small id="tagline">Turns your task into a prompt tuned for the AI model you use.</small>
     </div>
   </div>
   <div style="display: flex; align-items: center; gap: 12px;">
@@ -1915,7 +1944,7 @@ const L={
     exampleConfirm:'Replace the current field values with an example?',
     apiRememberLabel:'Remember key in this browser',
     apiKeyNote:'The key is stored only in this browser (without “Remember”, only until the tab closes). Run requests go through this site’s proxy server (Cloudflare Worker), so the key passes through it.',
-    tag:'PROMPT ENGINEERING CONSOLE · MODEL-AWARE (By CikaDule)',
+    tag:'Turns your task into a prompt tuned for the AI model you use.',
     clear:'Clear form',
     clearConfirm:'Clear all fields in this form? This cannot be undone.',
     type:'Context type / template',
@@ -2050,7 +2079,7 @@ const L={
     exampleConfirm:'Zameniti trenutne vrednosti polja primerom?',
     apiRememberLabel:'Zapamti ključ u ovom pregledaču',
     apiKeyNote:'Ključ se čuva samo u ovom pregledaču (bez „Zapamti“ samo dok je tab otvoren). Zahtevi za pokretanje idu preko proxy servera ovog sajta (Cloudflare Worker), pa ključ prolazi kroz njega.',
-    tag:'PROMPT ENGINEERING KONZOLA · PRILAGOĐENA MODELU (By CikaDule)',
+    tag:'Od opisa zadatka pravi prompt prilagođen AI modelu koji koristite.',
     clear:'Očisti obrazac',
     clearConfirm:'Obrisati sva polja u ovom obrascu? Ovo se ne može opozvati.',
     type:'Tip konteksta / šablon',
@@ -5005,5 +5034,63 @@ if (typeof updatePromptQuality === 'function') updatePromptQuality();
 
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "1ce5ed498a544574b4badda1f4d60c66"}'></script><!-- End Cloudflare Web Analytics -->
   
+
+<script>
+/* Procedural AI/IT background: circuit traces + a small neural layer, graphite / amber / verdigris.
+   Static layer is drawn once per resize; only a few light pulses move. Pauses when the tab is hidden,
+   stays still with prefers-reduced-motion. */
+(function(){
+  const c=document.getElementById('bgfx'); if(!c||!c.getContext) return;
+  const x=c.getContext('2d'); const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let W,H,dpr,base,paths=[],pulses=[],raf=0,seed=7;
+  const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
+  function build(){
+    dpr=Math.min(window.devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+    c.width=W*dpr; c.height=H*dpr; c.style.width=W+'px'; c.style.height=H+'px';
+    seed=7; paths=[];
+    const g=Math.max(28,Math.round(Math.min(W,H)/22)), n=Math.round((W*H)/26000);
+    for(let i=0;i<n;i++){
+      let px=Math.round(rnd()*W/g)*g, py=Math.round(rnd()*H/g)*g; const p=[[px,py]];
+      const steps=2+Math.floor(rnd()*4);
+      for(let k=0;k<steps;k++){
+        const d=[[1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,0]][Math.floor(rnd()*6)], L=(2+Math.floor(rnd()*6))*g;
+        px+=d[0]*L; py+=d[1]*L; p.push([px,py]);
+      }
+      paths.push(p);
+    }
+    base=document.createElement('canvas'); base.width=c.width; base.height=c.height;
+    const b=base.getContext('2d'); b.scale(dpr,dpr);
+    const bg=b.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#0E0D0B'); bg.addColorStop(1,'#0A0B0A'); b.fillStyle=bg; b.fillRect(0,0,W,H);
+    const glow=(cx,cy,r,col)=>{const gr=b.createRadialGradient(cx,cy,0,cx,cy,r);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');b.fillStyle=gr;b.fillRect(0,0,W,H);};
+    glow(W*0.85,H*0.1,Math.max(W,H)*0.55,'rgba(120,88,30,0.22)');
+    glow(W*0.08,H*0.95,Math.max(W,H)*0.5,'rgba(46,92,82,0.16)');
+    b.lineWidth=1;
+    for(const p of paths){
+      b.strokeStyle='rgba(212,175,95,0.17)'; b.beginPath(); b.moveTo(p[0][0],p[0][1]); for(const q of p.slice(1)) b.lineTo(q[0],q[1]); b.stroke();
+      for(const e of [p[0],p[p.length-1]]){ b.strokeStyle='rgba(212,175,95,0.32)'; b.strokeRect(e[0]-2.5,e[1]-2.5,5,5); }
+    }
+    /* small neural layer: three columns of nodes, top-right */
+    if(W<700){ pulses=Array.from({length:Math.min(8,paths.length)},()=>({p:paths[Math.floor(rnd()*paths.length)],t:rnd(),v:0.0012+rnd()*0.0022})); return; }
+    const cols=[0.66,0.76,0.86].map(f=>f*W), rows=[5,7,4];
+    const nodes=cols.map((cx,i)=>Array.from({length:rows[i]},(_,j)=>[cx,H*0.12+j*(H*0.5/(rows[i]-1||1))]));
+    b.strokeStyle='rgba(78,140,126,0.16)';
+    for(let i=0;i<nodes.length-1;i++) for(const a of nodes[i]) for(const z of nodes[i+1]){ b.beginPath(); b.moveTo(a[0],a[1]); b.lineTo(z[0],z[1]); b.stroke(); }
+    for(const col of nodes) for(const nd of col){ b.fillStyle='rgba(98,170,152,0.6)'; b.fillRect(nd[0]-2,nd[1]-2,4,4); }
+    pulses=Array.from({length:Math.min(14,paths.length)},()=>({p:paths[Math.floor(rnd()*paths.length)],t:rnd(),v:0.0012+rnd()*0.0022}));
+  }
+  function at(p,t){ let tot=0; const seg=[]; for(let i=1;i<p.length;i++){const l=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);seg.push(l);tot+=l;}
+    let d=t*tot; for(let i=0;i<seg.length;i++){ if(d<=seg[i]){const f=d/seg[i];return [p[i][0]+(p[i+1][0]-p[i][0])*f,p[i][1]+(p[i+1][1]-p[i][1])*f];} d-=seg[i]; } return p[p.length-1]; }
+  function frame(){
+    x.setTransform(1,0,0,1,0,0); x.drawImage(base,0,0); x.setTransform(dpr,0,0,dpr,0,0);
+    for(const u of pulses){ const [px,py]=at(u.p,u.t); x.fillStyle='rgba(232,200,128,0.85)'; x.fillRect(px-1.5,py-1.5,3,3);
+      const [qx,qy]=at(u.p,Math.max(0,u.t-0.06)); x.strokeStyle='rgba(232,200,128,0.25)'; x.beginPath(); x.moveTo(qx,qy); x.lineTo(px,py); x.stroke();
+      if(!still){ u.t+=u.v; if(u.t>1){ u.t=0; u.p=paths[Math.floor(Math.random()*paths.length)]; } } }
+    if(!still && !document.hidden) raf=requestAnimationFrame(frame);
+  }
+  let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{build();cancelAnimationFrame(raf);frame();},150);});
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&!still){cancelAnimationFrame(raf);frame();} });
+  build(); frame();
+})();
+</script>
 </body>
 </html>
